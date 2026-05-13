@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mine poeng - Eurovision 🎵</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎵 Eurovision - Mine poeng</h1>
+      <div class="user-info">
+        <span id="userName"></span>
+        <button onclick="logout()">Logg ut</button>
+      </div>
+    </header>
+
+    <nav>
+      <a href="songs.html">Sangene</a>
+      <a href="myPoints.html" class="active">Mine poeng</a>
+      <a href="results.html">Resultat</a>
+    </nav>
+
+    <div class="content">
+      <h2>Drag for å sortere - top 10 får poeng</h2>
+      <p style="color: #666; margin-bottom: 20px;">Rangering (drag for å endre rekkefølge):</p>
+
+      <ul id="rankingList" class="ranking-list"></ul>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+        <button class="btn" onclick="navigateTo('songs')">← Tilbake til sangene</button>
+        <button class="btn" id="submitBtn" onclick="submitRanking()">Send inn ranking</button>
+      </div>
+
+      <div id="submittedInfo" style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 6px; display: none;">
+        <p>✓ Din ranking er sendt inn!</p>
+        <button class="btn btn-secondary" onclick="editRanking()" style="margin-top: 10px;">Endre ranking</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if (!isLoggedIn()) {
+      window.location.href = 'index.html';
+    }
+
+    const session = getSession();
+    document.getElementById('userName').textContent = `Hei, ${session.name}!`;
+
+    let songs = [];
+    let ratings = {};
+    let submitted = false;
+
+    async function loadData() {
+      try {
+        songs = await apiCall('/songs');
+
+        const myRatings = await apiCall(`/my-ratings?sessionId=${session.sessionId}`);
+        myRatings.forEach(r => {
+          ratings[r.songId] = r.score;
+        });
+
+        // Check if submitted
+        const myRanking = await apiCall(`/my-ranking?sessionId=${session.sessionId}`);
+        if (myRanking) {
+          submitted = true;
+          document.getElementById('submitBtn').style.display = 'none';
+          document.getElementById('submittedInfo').style.display = 'block';
+        }
+
+        renderRanking();
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    function renderRanking() {
+      const list = document.getElementById('rankingList');
+      list.innerHTML = '';
+
+      // Sort by rating (highest first)
+      const sorted = songs
+        .filter(s => ratings[s.id] !== undefined)
+        .sort((a, b) => ratings[b.id] - ratings[a.id]);
+
+      const pointsArray = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+
+      sorted.forEach((song, idx) => {
+        const li = document.createElement('li');
+        li.className = 'ranking-item';
+        li.draggable = true;
+        li.dataset.songId = song.id;
+
+        const points = idx < 10 ? pointsArray[idx] : 0;
+        const pointsText = idx < 10 ? `${points} poeng` : 'Ingen poeng';
+
+        li.innerHTML = `
+          <span class="rank">#${idx + 1}</span>
+          <span>#${song.number} ${song.country}</span>
+          <span style="flex: 1;"></span>
+          <span style="color: #667eea; font-weight: bold;">${pointsText}</span>
+        `;
+
+        list.appendChild(li);
+      });
+
+      setupDragDrop('#rankingList');
+    }
+
+    async function submitRanking() {
+      const list = document.getElementById('rankingList');
+      const rankedIds = Array.from(list.querySelectorAll('.ranking-item'))
+        .map(li => parseInt(li.dataset.songId));
+
+      try {
+        await apiCall('/rankings', 'POST', {
+          sessionId: session.sessionId,
+          rankedSongIds: rankedIds
+        });
+
+        submitted = true;
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('submittedInfo').style.display = 'block';
+        showMessage('Ranking sendt inn!', 'success');
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    function editRanking() {
+      submitted = false;
+      document.getElementById('submitBtn').style.display = 'block';
+      document.getElementById('submittedInfo').style.display = 'none';
+    }
+
+    function logout() {
+      clearSession();
+      window.location.href = 'index.html';
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

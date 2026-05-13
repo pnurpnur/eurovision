@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eurovision 🎵</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎵 Eurovision Voting</h1>
+    </header>
+
+    <div class="content">
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="name">Ditt navn:</label>
+          <input type="text" id="name" required placeholder="Skriv ditt navn...">
+        </div>
+        <button type="submit" class="btn">Start</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if already logged in
+    if (localStorage.getItem('sessionId')) {
+      window.location.href = 'songs.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+
+      try {
+        const result = await apiCall('/users', 'POST', { name });
+        setSession(name, result.sessionId);
+        window.location.href = 'songs.html';
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

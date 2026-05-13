@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sangene - Eurovision 🎵</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎵 Eurovision - Sangene</h1>
+      <div class="user-info">
+        <span id="userName"></span>
+        <button onclick="logout()">Logg ut</button>
+      </div>
+    </header>
+
+    <nav>
+      <a href="songs.html" class="active">Sangene</a>
+      <a href="myPoints.html">Mine poeng</a>
+      <a href="results.html">Resultat</a>
+    </nav>
+
+    <div class="content">
+      <div id="songsList"></div>
+      <button class="btn" onclick="navigateTo('myPoints')" style="margin-top: 20px;">
+        Til mine poeng →
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Check login
+    if (!isLoggedIn()) {
+      window.location.href = 'index.html';
+    }
+
+    const session = getSession();
+    document.getElementById('userName').textContent = `Hei, ${session.name}!`;
+
+    let songs = [];
+    let ratings = {};
+    let currentScoreMethod = getStoredScoreMethod();
+
+    async function loadSongs() {
+      try {
+        songs = await apiCall('/songs');
+        ratings = {};
+
+        // Load existing ratings
+        const myRatings = await apiCall(`/my-ratings?sessionId=${session.sessionId}`);
+        myRatings.forEach(r => {
+          ratings[r.songId] = {
+            score: r.score,
+            scoreMethod: r.scoreMethod,
+            notes: r.notes
+          };
+        });
+
+        if (myRatings.length > 0) {
+          currentScoreMethod = myRatings[0].scoreMethod;
+          saveScoreMethod(currentScoreMethod);
+        }
+
+        renderSongs();
+      } catch (error) {
+        showMessage(`Feil ved lasting: ${error.message}`, 'error');
+      }
+    }
+
+    function renderSongs() {
+      const listDiv = document.getElementById('songsList');
+      listDiv.innerHTML = '';
+
+      songs.forEach(song => {
+        const rating = ratings[song.id] || {};
+        const displayScore = rating.score !== undefined
+          ? convertScore(rating.score, 'normalized', currentScoreMethod)
+          : '';
+
+        const card = document.createElement('div');
+        card.className = 'song-card';
+        card.innerHTML = `
+          <div class="song-header">
+            ${song.imageUrl ? `<img src="${song.imageUrl}" alt="${song.country}" class="song-image">` : '<div class="song-image"></div>'}
+            <div class="song-meta">
+              <h2>#${song.number} - ${song.country}</h2>
+              <p><strong>${song.artist}</strong></p>
+              <p>${song.title}</p>
+            </div>
+          </div>
+
+          <div class="song-controls">
+            <div class="control-group">
+              <label>Score-metode</label>
+              <div class="score-method-buttons">
+                <button type="button" class="method-btn ${currentScoreMethod === '1-10' ? 'active' : ''}" data-method="1-10">1-10</button>
+                <button type="button" class="method-btn ${currentScoreMethod === 'dice' ? 'active' : ''}" data-method="dice">🎲</button>
+                <button type="button" class="method-btn ${currentScoreMethod === 'scale' ? 'active' : ''}" data-method="scale">±</button>
+              </div>
+              <input type="text" class="score-input" data-song-id="${song.id}" placeholder="Score..." value="${displayScore}">
+            </div>
+
+            <div class="control-group">
+              <label>Notater</label>
+              <textarea class="notes-input" data-song-id="${song.id}" placeholder="Dine private notater...">${rating.notes || ''}</textarea>
+            </div>
+          </div>
+        `;
+
+        listDiv.appendChild(card);
+      });
+
+      // Add event listeners
+      document.querySelectorAll('.method-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const oldMethod = currentScoreMethod;
+          const newMethod = btn.dataset.method;
+
+          // Update active state
+          document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          currentScoreMethod = newMethod;
+          saveScoreMethod(newMethod);
+
+          // Convert all existing scores
+          document.querySelectorAll('.score-input').forEach(input => {
+            const currentVal = input.value;
+            if (currentVal) {
+              const normalized = normalizeScore(currentVal, oldMethod);
+              const converted = convertScore(normalized, 'normalized', newMethod);
+              input.value = converted;
+            }
+          });
+        });
+      });
+
+      // Auto-save on input
+      document.querySelectorAll('.score-input, .notes-input').forEach(input => {
+        input.addEventListener('change', async () => {
+          const songId = parseInt(input.dataset.songId);
+          let score = null;
+
+          if (input.classList.contains('score-input')) {
+            score = normalizeScore(input.value || 0, currentScoreMethod);
+            const notes = document.querySelector(`.notes-input[data-song-id="${songId}"]`).value;
+            ratings[songId] = { score, scoreMethod: currentScoreMethod, notes };
+          } else {
+            const scoreInput = document.querySelector(`.score-input[data-song-id="${songId}"]`);
+            score = normalizeScore(scoreInput.value || 0, currentScoreMethod);
+            ratings[songId] = { score, scoreMethod: currentScoreMethod, notes: input.value };
+          }
+
+          try {
+            await apiCall('/ratings', 'POST', {
+              sessionId: session.sessionId,
+              songId,
+              score: ratings[songId].score,
+              scoreMethod: currentScoreMethod,
+              notes: ratings[songId].notes
+            });
+          } catch (error) {
+            showMessage(`Feil ved lagring: ${error.message}`, 'error');
+          }
+        });
+      });
+    }
+
+    function normalizeScore(score, method) {
+      if (!score) return 0;
+      const val = parseFloat(score);
+      if (method === '1-10') return val;
+      if (method === 'dice') return (val / 6) * 10;
+      if (method === 'scale') return ((val + 2) / 4) * 10;
+      return 0;
+    }
+
+    function logout() {
+      clearSession();
+      window.location.href = 'index.html';
+    }
+
+    loadSongs();
+  </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_URL = localStorage.getItem('apiUrl') || 'http://localhost:3001/api';
 
 // Get session from localStorage
 function getSession() {
@@ -46,21 +46,32 @@ async function apiCall(endpoint, method = 'GET', body = null) {
   return response.json();
 }
 
+// Normalize score to 0-10 (backend stores as 0-10)
+function normalizeScore(score, method) {
+  if (!score) return 0;
+  const val = parseFloat(score);
+  if (method === '1-10') return val;
+  if (method === 'dice') return (val / 6) * 10;
+  if (method === 'scale') return ((val + 2) / 4) * 10;
+  return 0;
+}
+
 // Convert between score formats
 function convertScore(score, fromMethod, toMethod) {
   if (fromMethod === toMethod) return score;
-
-  // Normalize to 0-10
-  let normalized;
-  if (fromMethod === '1-10') normalized = parseFloat(score);
-  else if (fromMethod === 'dice') normalized = (parseFloat(score) / 6) * 10;
-  else if (fromMethod === 'scale') normalized = ((parseFloat(score) + 2) / 4) * 10;
-
-  // Denormalize to target
-  if (toMethod === '1-10') return Math.round(normalized);
-  if (toMethod === 'dice') return Math.round((normalized / 10) * 6);
-  if (toMethod === 'scale') return Math.round((normalized / 10) * 4 - 2);
-
+  if (fromMethod === 'normalized') {
+    // From 0-10 to target format
+    const val = parseFloat(score);
+    if (toMethod === '1-10') return Math.round(val);
+    if (toMethod === 'dice') return Math.round((val / 10) * 6);
+    if (toMethod === 'scale') return Math.round((val / 10) * 4 - 2);
+  } else {
+    // Between non-normalized formats
+    let normalized = normalizeScore(score, fromMethod);
+    if (toMethod === '1-10') return Math.round(normalized);
+    if (toMethod === 'dice') return Math.round((normalized / 10) * 6);
+    if (toMethod === 'scale') return Math.round((normalized / 10) * 4 - 2);
+  }
   return 0;
 }
 

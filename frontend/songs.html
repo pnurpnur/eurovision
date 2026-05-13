@@ -170,15 +170,6 @@
       });
     }
 
-    function normalizeScore(score, method) {
-      if (!score) return 0;
-      const val = parseFloat(score);
-      if (method === '1-10') return val;
-      if (method === 'dice') return (val / 6) * 10;
-      if (method === 'scale') return ((val + 2) / 4) * 10;
-      return 0;
-    }
-
     function logout() {
       clearSession();
       window.location.href = 'index.html';

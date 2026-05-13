@@ -21,11 +21,17 @@ En enkel og lettvekt voting-app for Eurovision med 10 deltakere.
 ```bash
 cd backend
 npm install
-npm start
+npm run seed    # Populate database with 25 Eurovision 2026 songs
+npm start       # Start server on http://localhost:3001
 ```
 
 ### Frontend
-Deploy `/frontend` folder to Vercel.
+```bash
+cd frontend
+# Deploy to Vercel, or serve locally during development
+```
+
+Set `REACT_APP_API_URL` environment variable to point to your backend API.
 
 ## Admin
 Bruker med navn "Inge" kan låse resultatene via admin-panelet.

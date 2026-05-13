@@ -7,36 +7,53 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Helper: promisify db.run
+function dbRun(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function(err) {
+      if (err) reject(err);
+      else resolve({ lastID: this.lastID, changes: this.changes });
+    });
+  });
+}
+
+// Helper: promisify db.get
+function dbGet(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+}
+
+// Helper: promisify db.all
+function dbAll(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
 // Initialize DB on startup
-initDb();
-const db = getDb();
+let db;
+await initDb().then(d => { db = d; });
 
 // Helper: normalize score to 0-10
 function normalizeScore(score, method) {
   if (method === '1-10') return parseFloat(score);
-  if (method === 'dice') return (parseFloat(score) / 6) * 10; // 1-6 → 0-10
+  if (method === 'dice') return (parseFloat(score) / 6) * 10;
   if (method === 'scale') {
-    // -2, -1, 0, 1, 2 → -10, -5, 0, 5, 10 (map to 0-10 as 0, 2.5, 5, 7.5, 10)
     const val = parseFloat(score);
-    return ((val + 2) / 4) * 10; // -2..2 → 0..10
-  }
-  return 0;
-}
-
-// Helper: denormalize from 0-10 to target method
-function denormalizeScore(normalizedScore, targetMethod) {
-  const score = parseFloat(normalizedScore);
-  if (targetMethod === '1-10') return Math.round(score);
-  if (targetMethod === 'dice') return Math.round((score / 10) * 6);
-  if (targetMethod === 'scale') {
-    // 0-10 → -2..2
-    return Math.round((score / 10) * 4 - 2);
+    return ((val + 2) / 4) * 10;
   }
   return 0;
 }
 
 // POST /api/users - register user
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
   const { name } = req.body;
   if (!name || name.trim() === '') {
     return res.status(400).json({ error: 'Name required' });
@@ -44,41 +61,43 @@ app.post('/api/users', (req, res) => {
 
   const sessionId = uuidv4();
   try {
-    const stmt = db.prepare(
-      'INSERT INTO users (name, sessionId) VALUES (?, ?)'
+    const info = await dbRun(db,
+      'INSERT INTO users (name, sessionId) VALUES (?, ?)',
+      [name.trim(), sessionId]
     );
-    const info = stmt.run(name.trim(), sessionId);
-    res.json({ userId: info.lastInsertRowid, sessionId });
+    res.json({ userId: info.lastID, sessionId });
   } catch (err) {
     res.status(400).json({ error: 'Name already taken' });
   }
 });
 
 // GET /api/songs - list all songs
-app.get('/api/songs', (req, res) => {
-  const stmt = db.prepare('SELECT * FROM songs ORDER BY number');
-  const songs = stmt.all();
-  res.json(songs);
+app.get('/api/songs', async (req, res) => {
+  try {
+    const songs = await dbAll(db, 'SELECT * FROM songs ORDER BY number');
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/ratings - save rating
-app.post('/api/ratings', (req, res) => {
+app.post('/api/ratings', async (req, res) => {
   const { sessionId, songId, score, scoreMethod, notes } = req.body;
 
-  const userStmt = db.prepare('SELECT id FROM users WHERE sessionId = ?');
-  const user = userStmt.get(sessionId);
-  if (!user) return res.status(401).json({ error: 'Invalid session' });
-
-  const normalizedScore = normalizeScore(score, scoreMethod);
-
   try {
-    const stmt = db.prepare(
+    const user = await dbGet(db, 'SELECT id FROM users WHERE sessionId = ?', [sessionId]);
+    if (!user) return res.status(401).json({ error: 'Invalid session' });
+
+    const normalizedScore = normalizeScore(score, scoreMethod);
+
+    await dbRun(db,
       `INSERT INTO ratings (userId, songId, score, scoreMethod, notes)
        VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(userId, songId) DO UPDATE SET
-       score = excluded.score, scoreMethod = excluded.scoreMethod, notes = excluded.notes`
+       score = excluded.score, scoreMethod = excluded.scoreMethod, notes = excluded.notes`,
+      [user.id, songId, normalizedScore, scoreMethod, notes || '']
     );
-    stmt.run(user.id, songId, normalizedScore, scoreMethod, notes || '');
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -86,41 +105,43 @@ app.post('/api/ratings', (req, res) => {
 });
 
 // GET /api/my-ratings - get user's ratings
-app.get('/api/my-ratings', (req, res) => {
+app.get('/api/my-ratings', async (req, res) => {
   const { sessionId } = req.query;
 
-  const userStmt = db.prepare('SELECT id FROM users WHERE sessionId = ?');
-  const user = userStmt.get(sessionId);
-  if (!user) return res.status(401).json({ error: 'Invalid session' });
+  try {
+    const user = await dbGet(db, 'SELECT id FROM users WHERE sessionId = ?', [sessionId]);
+    if (!user) return res.status(401).json({ error: 'Invalid session' });
 
-  const stmt = db.prepare(
-    `SELECT r.*, s.number, s.country, s.title, s.artist
-     FROM ratings r
-     JOIN songs s ON r.songId = s.id
-     WHERE r.userId = ?
-     ORDER BY s.number`
-  );
-  const ratings = stmt.all(user.id);
+    const ratings = await dbAll(db,
+      `SELECT r.*, s.number, s.country, s.title, s.artist
+       FROM ratings r
+       JOIN songs s ON r.songId = s.id
+       WHERE r.userId = ?
+       ORDER BY s.number`,
+      [user.id]
+    );
 
-  res.json(ratings);
+    res.json(ratings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/rankings - submit final ranking
-app.post('/api/rankings', (req, res) => {
+app.post('/api/rankings', async (req, res) => {
   const { sessionId, rankedSongIds } = req.body;
 
-  const userStmt = db.prepare('SELECT id FROM users WHERE sessionId = ?');
-  const user = userStmt.get(sessionId);
-  if (!user) return res.status(401).json({ error: 'Invalid session' });
-
   try {
-    const stmt = db.prepare(
+    const user = await dbGet(db, 'SELECT id FROM users WHERE sessionId = ?', [sessionId]);
+    if (!user) return res.status(401).json({ error: 'Invalid session' });
+
+    await dbRun(db,
       `INSERT INTO finalRankings (userId, rankedSongIds)
        VALUES (?, ?)
        ON CONFLICT(userId) DO UPDATE SET
-       rankedSongIds = excluded.rankedSongIds, submittedAt = CURRENT_TIMESTAMP`
+       rankedSongIds = excluded.rankedSongIds, submittedAt = CURRENT_TIMESTAMP`,
+      [user.id, JSON.stringify(rankedSongIds)]
     );
-    stmt.run(user.id, JSON.stringify(rankedSongIds));
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -128,74 +149,81 @@ app.post('/api/rankings', (req, res) => {
 });
 
 // GET /api/my-ranking - get user's submitted ranking
-app.get('/api/my-ranking', (req, res) => {
+app.get('/api/my-ranking', async (req, res) => {
   const { sessionId } = req.query;
 
-  const userStmt = db.prepare('SELECT id FROM users WHERE sessionId = ?');
-  const user = userStmt.get(sessionId);
-  if (!user) return res.status(401).json({ error: 'Invalid session' });
+  try {
+    const user = await dbGet(db, 'SELECT id FROM users WHERE sessionId = ?', [sessionId]);
+    if (!user) return res.status(401).json({ error: 'Invalid session' });
 
-  const stmt = db.prepare(
-    'SELECT rankedSongIds FROM finalRankings WHERE userId = ?'
-  );
-  const ranking = stmt.get(user.id);
+    const ranking = await dbGet(db,
+      'SELECT rankedSongIds FROM finalRankings WHERE userId = ?',
+      [user.id]
+    );
 
-  res.json(ranking ? JSON.parse(ranking.rankedSongIds) : null);
+    res.json(ranking ? JSON.parse(ranking.rankedSongIds) : null);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/results - aggregated results
-app.get('/api/results', (req, res) => {
-  const stateStmt = db.prepare("SELECT value FROM appState WHERE key = 'resultsLocked'");
-  const appState = stateStmt.get();
-  const resultsLocked = appState?.value === 'true';
+app.get('/api/results', async (req, res) => {
+  try {
+    const appState = await dbGet(db, "SELECT value FROM appState WHERE key = 'resultsLocked'");
+    const resultsLocked = appState?.value === 'true';
 
-  const rankingStmt = db.prepare(
-    `SELECT u.name, fr.rankedSongIds FROM finalRankings fr
-     JOIN users u ON fr.userId = u.id`
-  );
-  const rankings = rankingStmt.all();
+    const rankings = await dbAll(db,
+      `SELECT u.name, fr.rankedSongIds FROM finalRankings fr
+       JOIN users u ON fr.userId = u.id`
+    );
 
-  // Calculate points: 12, 10, 8, 7, 6, 5, 4, 3, 2, 1
-  const pointsArray = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
-  const results = {};
+    // Calculate points: 12, 10, 8, 7, 6, 5, 4, 3, 2, 1
+    const pointsArray = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+    const results = {};
 
-  rankings.forEach(row => {
-    const songIds = JSON.parse(row.rankedSongIds);
-    songIds.slice(0, 10).forEach((songId, idx) => {
-      if (!results[songId]) results[songId] = 0;
-      results[songId] += pointsArray[idx];
+    rankings.forEach(row => {
+      const songIds = JSON.parse(row.rankedSongIds);
+      songIds.slice(0, 10).forEach((songId, idx) => {
+        if (!results[songId]) results[songId] = 0;
+        results[songId] += pointsArray[idx];
+      });
     });
-  });
 
-  // Get song details
-  const songStmt = db.prepare('SELECT id, number, country, title, artist FROM songs');
-  const songs = songStmt.all();
-  const songMap = Object.fromEntries(songs.map(s => [s.id, s]));
+    // Get song details
+    const songs = await dbAll(db, 'SELECT id, number, country, title, artist FROM songs');
+    const songMap = Object.fromEntries(songs.map(s => [s.id, s]));
 
-  const output = Object.entries(results)
-    .map(([songId, points]) => ({
-      ...songMap[songId],
-      points
-    }))
-    .sort((a, b) => b.points - a.points);
+    const output = Object.entries(results)
+      .map(([songId, points]) => ({
+        ...songMap[songId],
+        points
+      }))
+      .sort((a, b) => b.points - a.points);
 
-  res.json({ results: output, resultsLocked });
+    res.json({ results: output, resultsLocked });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/admin/lock-results - admin lock
-app.post('/api/admin/lock-results', (req, res) => {
+app.post('/api/admin/lock-results', async (req, res) => {
   const { name } = req.body;
 
   if (name !== 'Inge') {
     return res.status(403).json({ error: 'Admin only' });
   }
 
-  const stmt = db.prepare(
-    "UPDATE appState SET value = 'true' WHERE key = 'resultsLocked'"
-  );
-  stmt.run();
+  try {
+    await dbRun(db,
+      "UPDATE appState SET value = 'true' WHERE key = 'resultsLocked'"
+    );
 
-  res.json({ success: true, locked: true });
+    res.json({ success: true, locked: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 3001;

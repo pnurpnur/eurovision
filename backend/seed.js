@@ -21,7 +21,7 @@ const songs = [
   { number: 17, country: 'Serbia', artist: 'Konstrakta', title: 'In Corpore Sano', imageUrl: 'https://via.placeholder.com/200?text=Serbia' },
   { number: 18, country: 'Bulgaria', artist: 'Intelligent Music Project', title: 'Intention', imageUrl: 'https://via.placeholder.com/200?text=Bulgaria' },
   { number: 19, country: 'Hungary', artist: 'ByeAlex & Gipsy.hu', title: 'Violent Feelings', imageUrl: 'https://via.placeholder.com/200?text=Hungary' },
-  { number: 20, country: 'Czechia', artist: 'TVORCHI', title: 'Heart of Steel', imageUrl: 'https://via.placeholder.com/200?text=TVORCHI' },
+  { number: 20, country: 'Slovenia', artist: 'TVORCHI', title: 'Heart of Steel', imageUrl: 'https://via.placeholder.com/200?text=Slovenia' },
   { number: 21, country: 'Lithuania', artist: 'Andromeda', title: 'Discoteque', imageUrl: 'https://via.placeholder.com/200?text=Lithuania' },
   { number: 22, country: 'Iceland', artist: 'Dádá Life', title: 'Zorra', imageUrl: 'https://via.placeholder.com/200?text=Iceland' },
   { number: 23, country: 'Belgium', artist: 'Gustaph', title: 'In Your Eyes', imageUrl: 'https://via.placeholder.com/200?text=Belgium' },
@@ -29,22 +29,38 @@ const songs = [
   { number: 25, country: 'Australia', artist: 'Electric Fields', title: 'Awake and Alive', imageUrl: 'https://via.placeholder.com/200?text=Australia' }
 ];
 
+function dbRun(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function(err) {
+      if (err) reject(err);
+      else resolve({ lastID: this.lastID });
+    });
+  });
+}
+
+function dbAll(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
 async function seedDatabase() {
   try {
-    initDb();
-    const db = getDb();
+    const db = await initDb();
 
     // Clear existing songs
-    db.prepare('DELETE FROM songs').run();
+    await dbRun(db, 'DELETE FROM songs');
 
     // Insert songs
-    const stmt = db.prepare(
-      'INSERT INTO songs (number, country, artist, title, imageUrl) VALUES (?, ?, ?, ?, ?)'
-    );
-
-    songs.forEach(song => {
-      stmt.run(song.number, song.country, song.artist, song.title, song.imageUrl);
-    });
+    for (const song of songs) {
+      await dbRun(db,
+        'INSERT INTO songs (number, country, artist, title, imageUrl) VALUES (?, ?, ?, ?, ?)',
+        [song.number, song.country, song.artist, song.title, song.imageUrl]
+      );
+    }
 
     console.log(`✓ Seeded ${songs.length} songs into database!`);
     process.exit(0);

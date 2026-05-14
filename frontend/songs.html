@@ -272,14 +272,13 @@
     }
 
     function isInteractiveElement(element) {
-      // Check if element is a slider, button, or textarea
+      // Check if element is a slider or button (disable swipe on these)
       if (element.classList.contains('score-slider') ||
-          element.classList.contains('score-button') ||
-          element.classList.contains('notes-input')) {
+          element.classList.contains('score-button')) {
         return true;
       }
       // Check if element is inside a slider-wrapper or score-buttons-group
-      return element.closest('.slider-wrapper, .score-buttons-group, .notes-input') !== null;
+      return element.closest('.slider-wrapper, .score-buttons-group') !== null;
     }
 
     function handleSwipe() {

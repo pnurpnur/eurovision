@@ -59,6 +59,7 @@ body > * {
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
 /* Main Header - Transparent */
@@ -145,41 +146,43 @@ header.content-header h1 {
 /* Navigation */
 nav {
   display: flex;
-  gap: 12px;
+  gap: 24px;
   margin-bottom: 30px;
   flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 16px 30px;
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  align-items: center;
 }
 
 nav a,
 nav button {
-  flex: 1;
-  min-width: 140px;
-  padding: 14px 20px;
-  background: white;
-  border: 3px solid var(--primary);
-  color: var(--primary);
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
 }
 
 nav a:hover,
 nav button:hover {
-  background: var(--primary);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 168, 232, 0.3);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 nav a.active,
 nav button.active {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
-  border-color: transparent;
+  background: rgba(0, 168, 232, 0.3);
+  border: 1px solid rgba(0, 168, 232, 0.5);
 }
 
 /* Content Area */

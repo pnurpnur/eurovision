@@ -23,7 +23,7 @@
     </nav>
 
     <div class="content">
-      <div id="adminPanel"></div>
+      <div id="adminPanel" style="margin-bottom: 20px;"></div>
 
       <h2 id="resultTitle">Samlet resultat fra alle deltakere</h2>
       <table class="results-table">
@@ -72,9 +72,17 @@
       if (session.name === 'Inge') {
         panel.innerHTML = `
           <div class="admin-panel">
-            <h3>Admin-panel</h3>
-            <p>Du kan lukke avstemningen når alle har stemt.</p>
-            <button onclick="lockResults()">Lukk avstemningen</button>
+            <h3>🔧 Admin-panel</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <p>Rediger sang-informasjon og bilder:</p>
+                <button onclick="window.location.href='admin.html'" style="width: 100%; margin-top: 5px;">Admin Panel</button>
+              </div>
+              <div>
+                <p>Lukk avstemningen når alle har stemt:</p>
+                <button onclick="lockResults()" style="width: 100%; margin-top: 5px;">Lukk avstemningen</button>
+              </div>
+            </div>
           </div>
         `;
       }

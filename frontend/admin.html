@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Eurovision 🎵</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔧 Eurovision Admin Panel</h1>
+      <div class="user-info">
+        <span id="userName"></span>
+        <button onclick="logout()">Logg ut</button>
+      </div>
+    </header>
+
+    <nav>
+      <a href="index.html">← Hjem</a>
+    </nav>
+
+    <div class="content">
+      <h2>Rediger sang-informasjon</h2>
+      <p style="color: #666; margin-bottom: 20px;">Klikk på en sang for å redigere land, artist, tittel og bilde-URL.</p>
+
+      <div id="songsList"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const session = getSession();
+
+    // Check if admin
+    if (session.name !== 'Inge') {
+      showMessage('Kun admin kan få tilgang', 'error');
+      setTimeout(() => window.location.href = 'index.html', 2000);
+    }
+
+    document.getElementById('userName').textContent = `Admin: ${session.name}`;
+
+    let songs = [];
+
+    async function loadSongs() {
+      try {
+        songs = await apiCall('/songs');
+        renderSongs();
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    function renderSongs() {
+      const listDiv = document.getElementById('songsList');
+      listDiv.innerHTML = '';
+
+      songs.forEach(song => {
+        const card = document.createElement('div');
+        card.className = 'song-card';
+        card.innerHTML = `
+          <div class="song-header">
+            <img id="img-${song.id}" src="${song.imageUrl}" alt="${song.country}" class="song-image" style="cursor: pointer;">
+            <div class="song-meta" style="flex: 1;">
+              <h3>#${song.number} - ${song.country}</h3>
+              <p><strong>${song.artist}</strong></p>
+              <p>${song.title}</p>
+              <button class="btn btn-secondary" onclick="editSong(${song.id})">Rediger</button>
+            </div>
+          </div>
+
+          <div id="edit-form-${song.id}" style="display: none; padding-top: 15px; border-top: 1px solid #ddd;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div class="form-group">
+                <label>Land:</label>
+                <input type="text" class="country-input" data-id="${song.id}" value="${song.country}">
+              </div>
+              <div class="form-group">
+                <label>Artist:</label>
+                <input type="text" class="artist-input" data-id="${song.id}" value="${song.artist}">
+              </div>
+              <div class="form-group">
+                <label>Sang:</label>
+                <input type="text" class="title-input" data-id="${song.id}" value="${song.title}">
+              </div>
+              <div class="form-group">
+                <label>Bilde URL:</label>
+                <input type="text" class="imageurl-input" data-id="${song.id}" value="${song.imageUrl}" placeholder="https://...">
+              </div>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+              <button class="btn" onclick="saveSong(${song.id})">Lagre</button>
+              <button class="btn btn-secondary" onclick="cancelEdit(${song.id})">Avbryt</button>
+            </div>
+          </div>
+        `;
+
+        listDiv.appendChild(card);
+      });
+    }
+
+    function editSong(songId) {
+      document.getElementById(`edit-form-${songId}`).style.display = 'block';
+    }
+
+    function cancelEdit(songId) {
+      document.getElementById(`edit-form-${songId}`).style.display = 'none';
+    }
+
+    async function saveSong(songId) {
+      const country = document.querySelector(`.country-input[data-id="${songId}"]`).value;
+      const artist = document.querySelector(`.artist-input[data-id="${songId}"]`).value;
+      const title = document.querySelector(`.title-input[data-id="${songId}"]`).value;
+      const imageUrl = document.querySelector(`.imageurl-input[data-id="${songId}"]`).value;
+
+      try {
+        await apiCall(`/admin/songs/${songId}`, 'PUT', {
+          name: session.name,
+          country,
+          artist,
+          title,
+          imageUrl
+        });
+
+        // Update local data
+        const song = songs.find(s => s.id === songId);
+        if (song) {
+          song.country = country;
+          song.artist = artist;
+          song.title = title;
+          song.imageUrl = imageUrl;
+        }
+
+        // Update image preview
+        document.getElementById(`img-${songId}`).src = imageUrl;
+
+        showMessage('Sang oppdatert!', 'success');
+        cancelEdit(songId);
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    function logout() {
+      clearSession();
+      window.location.href = 'index.html';
+    }
+
+    loadSongs();
+  </script>
+</body>
+</html>

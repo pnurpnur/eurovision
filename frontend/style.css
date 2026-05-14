@@ -295,6 +295,15 @@ textarea {
   background: #ffb300;
 }
 
+.admin-panel div {
+  padding: 10px;
+}
+
+.admin-panel div p {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
 .form-group {
   margin-bottom: 20px;
 }

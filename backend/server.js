@@ -233,6 +233,29 @@ app.post('/api/admin/lock-results', async (req, res) => {
   }
 });
 
+// PUT /api/admin/songs/:id - update song
+app.put('/api/admin/songs/:id', async (req, res) => {
+  const { name } = req.body;
+
+  if (name !== 'Inge') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const { id } = req.params;
+  const { country, artist, title, imageUrl } = req.body;
+
+  try {
+    await dbRun(db,
+      `UPDATE songs SET country = ?, artist = ?, title = ?, imageUrl = ? WHERE id = ?`,
+      [country, artist, title, imageUrl, id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Fallback for SPA routing
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, '../frontend/index.html'));

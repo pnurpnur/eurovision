@@ -27,7 +27,12 @@
   <script>
     // Check if already logged in
     if (localStorage.getItem('sessionId')) {
-      window.location.href = 'songs.html';
+      const name = localStorage.getItem('userName');
+      if (name === 'Inge') {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'songs.html';
+      }
     }
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -35,9 +40,16 @@
       const name = document.getElementById('name').value.trim();
 
       try {
-        const result = await apiCall('/users', 'POST', { name });
-        setSession(name, result.sessionId);
-        window.location.href = 'songs.html';
+        if (name === 'Inge') {
+          // Admin login - go straight to admin panel
+          setSession(name, 'admin-session');
+          window.location.href = 'admin.html';
+        } else {
+          // Regular user
+          const result = await apiCall('/users', 'POST', { name });
+          setSession(name, result.sessionId);
+          window.location.href = 'songs.html';
+        }
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }

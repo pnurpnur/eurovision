@@ -253,13 +253,33 @@
       const card = document.getElementById('songCard');
 
       card.addEventListener('touchstart', (e) => {
+        // Don't track swipe if touching slider or score buttons
+        if (isInteractiveElement(e.target)) {
+          touchStartX = null;
+          return;
+        }
         touchStartX = e.changedTouches[0].screenX;
       }, false);
 
       card.addEventListener('touchend', (e) => {
+        // Don't swipe if we didn't properly start
+        if (touchStartX === null) {
+          return;
+        }
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
       }, false);
+    }
+
+    function isInteractiveElement(element) {
+      // Check if element is a slider, button, or textarea
+      if (element.classList.contains('score-slider') ||
+          element.classList.contains('score-button') ||
+          element.classList.contains('notes-input')) {
+        return true;
+      }
+      // Check if element is inside a slider-wrapper or score-buttons-group
+      return element.closest('.slider-wrapper, .score-buttons-group, .notes-input') !== null;
     }
 
     function handleSwipe() {

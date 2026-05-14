@@ -64,7 +64,7 @@ body > * {
 
 /* Main Header - Transparent */
 .main-header {
-  padding: 20px 30px;
+  padding: 10px 30px;
   margin-bottom: 0;
   background: transparent;
   border: none;
@@ -325,7 +325,7 @@ nav button.active {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
-  padding: 16px;
+  padding: 10px;
   max-width: 400px;
   width: 100%;
   touch-action: pan-y;
@@ -396,6 +396,10 @@ nav button.active {
   display: flex;
   flex-direction: column;
   gap: 0px;
+}
+
+.song-form .form-group:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 .song-form label {
@@ -920,7 +924,7 @@ textarea {
 
 /* Forms */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .form-group label {

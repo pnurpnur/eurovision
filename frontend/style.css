@@ -29,8 +29,70 @@ body {
   margin: 0 auto;
 }
 
-/* Header */
-header {
+/* Main Header - Transparent */
+.main-header {
+  padding: 20px 30px;
+  margin-bottom: 40px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 4px 12px rgba(0, 168, 232, 0.2));
+}
+
+.main-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: white;
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.logout-btn {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Old header styles for .content header if needed */
+header.content-header {
   background: linear-gradient(135deg, var(--primary) 0%, #0080b3 100%);
   padding: 30px;
   border-radius: 16px;
@@ -42,34 +104,10 @@ header {
   color: white;
 }
 
-header h1 {
+header.content-header h1 {
   font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.5px;
-}
-
-.user-info {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  font-weight: 500;
-}
-
-.user-info button {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.user-info button:hover {
-  background: white;
-  color: var(--primary);
 }
 
 /* Navigation */

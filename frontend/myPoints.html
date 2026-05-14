@@ -18,19 +18,18 @@
   <div id="menuContainer"></div>
 
   <div class="container">
-
     <div class="content">
-      <h2>Drag for å sortere - top 10 får poeng</h2>
-      <p style="color: #666; margin-bottom: 20px;">Rangering (drag for å endre rekkefølge):</p>
+      <h2>Mine poeng</h2>
+      <p class="subtitle">Dra og slipp for å sortere - top 10 får poeng</p>
 
-      <ul id="rankingList" class="ranking-list"></ul>
+      <div id="rankingList" class="my-points-list"></div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
-        <button class="btn" onclick="navigateTo('songs')">← Tilbake til sangene</button>
+      <div class="my-points-buttons">
+        <button class="btn btn-secondary" onclick="navigateTo('songs')">← Tilbake til sangene</button>
         <button class="btn" id="submitBtn" onclick="submitRanking()">Send inn ranking</button>
       </div>
 
-      <div id="submittedInfo" style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 6px; display: none;">
+      <div id="submittedInfo" class="submitted-info" style="display: none;">
         <p>✓ Din ranking er sendt inn!</p>
         <button class="btn btn-secondary" onclick="editRanking()" style="margin-top: 10px;">Endre ranking</button>
       </div>
@@ -43,6 +42,8 @@
       window.location.href = 'index.html';
     }
 
+    const session = getSession();
+    const POINTS_ARRAY = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
     let songs = [];
     let ratings = {};
     let submitted = false;
@@ -53,15 +54,22 @@
 
         const myRatings = await apiCall(`/my-ratings?sessionId=${session.sessionId}`);
         myRatings.forEach(r => {
-          ratings[r.songId] = r.score;
+          ratings[r.songId] = {
+            score: r.score,
+            notes: r.notes || ''
+          };
         });
 
         // Check if submitted
-        const myRanking = await apiCall(`/my-ranking?sessionId=${session.sessionId}`);
-        if (myRanking) {
-          submitted = true;
-          document.getElementById('submitBtn').style.display = 'none';
-          document.getElementById('submittedInfo').style.display = 'block';
+        try {
+          const myRanking = await apiCall(`/my-ranking?sessionId=${session.sessionId}`);
+          if (myRanking && myRanking.rankedSongIds) {
+            submitted = true;
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('submittedInfo').style.display = 'block';
+          }
+        } catch (err) {
+          // No ranking submitted yet
         }
 
         renderRanking();
@@ -74,39 +82,49 @@
       const list = document.getElementById('rankingList');
       list.innerHTML = '';
 
-      // Sort by rating (highest first)
-      const sorted = songs
-        .filter(s => ratings[s.id] !== undefined)
-        .sort((a, b) => ratings[b.id] - ratings[a.id]);
-
-      const pointsArray = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
-
-      sorted.forEach((song, idx) => {
-        const li = document.createElement('li');
-        li.className = 'ranking-item';
-        li.draggable = true;
-        li.dataset.songId = song.id;
-
-        const points = idx < 10 ? pointsArray[idx] : 0;
-        const pointsText = idx < 10 ? `${points} poeng` : 'Ingen poeng';
-
-        li.innerHTML = `
-          <span class="rank">#${idx + 1}</span>
-          <span>#${song.number} ${song.country}</span>
-          <span style="flex: 1;"></span>
-          <span style="color: #667eea; font-weight: bold;">${pointsText}</span>
-        `;
-
-        list.appendChild(li);
+      // Sort by rating (highest first), unrated as neutral (5/10)
+      const sorted = songs.sort((a, b) => {
+        const scoreA = ratings[a.id]?.score ?? 5;
+        const scoreB = ratings[b.id]?.score ?? 5;
+        return scoreB - scoreA;
       });
 
-      setupDragDrop('#rankingList');
+      sorted.forEach((song, idx) => {
+        const rating = ratings[song.id];
+        const score = rating?.score ?? 5;
+        const notes = rating?.notes ?? '';
+        const points = idx < 10 ? POINTS_ARRAY[idx] : 0;
+
+        const item = document.createElement('div');
+        item.className = 'my-points-item';
+        item.draggable = true;
+        item.dataset.songId = song.id;
+        item.dataset.rank = idx + 1;
+
+        const notesHtml = notes ? `<div class="notes-bubble">${notes}</div>` : '';
+
+        item.innerHTML = `
+          <div class="rank-number">#${idx + 1}</div>
+          <div class="song-info">
+            <div class="song-header">
+              <span class="song-number">#${song.number}</span>
+              <span class="song-country">${song.country}</span>
+            </div>
+            ${notesHtml}
+          </div>
+          <div class="points-display">${points} poeng</div>
+        `;
+
+        list.appendChild(item);
+      });
+
+      setupDragDrop('.my-points-list', '.my-points-item');
     }
 
     async function submitRanking() {
       const list = document.getElementById('rankingList');
-      const rankedIds = Array.from(list.querySelectorAll('.ranking-item'))
-        .map(li => parseInt(li.dataset.songId));
+      const rankedIds = Array.from(list.querySelectorAll('.my-points-item'))
+        .map(el => parseInt(el.dataset.songId));
 
       try {
         await apiCall('/rankings', 'POST', {

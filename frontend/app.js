@@ -121,11 +121,14 @@ function navigateTo(page) {
 }
 
 // Drag and drop setup for ranking
-function setupDragDrop(listSelector) {
+function setupDragDrop(listSelector, itemSelector) {
   let draggedElement = null;
 
+  // Use provided item selector or default to ranking-item
+  const selector = itemSelector || '.ranking-item';
+
   document.addEventListener('dragstart', (e) => {
-    if (e.target.classList.contains('ranking-item')) {
+    if (e.target.matches(selector)) {
       draggedElement = e.target;
       e.target.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
@@ -133,7 +136,7 @@ function setupDragDrop(listSelector) {
   });
 
   document.addEventListener('dragend', (e) => {
-    if (e.target.classList.contains('ranking-item')) {
+    if (e.target.matches(selector)) {
       e.target.classList.remove('dragging');
     }
   });
@@ -142,7 +145,7 @@ function setupDragDrop(listSelector) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
 
-    const afterElement = getDragAfterElement(listSelector, e.clientY);
+    const afterElement = getDragAfterElement(listSelector, selector, e.clientY);
     const list = document.querySelector(listSelector);
 
     if (afterElement == null) {
@@ -153,8 +156,10 @@ function setupDragDrop(listSelector) {
   });
 }
 
-function getDragAfterElement(container, y) {
-  const items = [...document.querySelectorAll(`${container} .ranking-item:not(.dragging)`)];
+function getDragAfterElement(container, itemSelector, y) {
+  // Use provided item selector or default to ranking-item
+  const selector = itemSelector || '.ranking-item';
+  const items = [...document.querySelectorAll(`${container} ${selector}:not(.dragging)`)];
 
   return items.reduce((closest, child) => {
     const box = child.getBoundingClientRect();

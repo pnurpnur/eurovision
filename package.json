@@ -1,0 +1,13 @@
+{
+  "name": "eurovision-app",
+  "version": "1.0.0",
+  "description": "Eurovision voting app",
+  "type": "module",
+  "scripts": {
+    "start": "cd backend && npm install && npm start",
+    "dev": "cd backend && npm start"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

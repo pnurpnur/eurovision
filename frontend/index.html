@@ -7,24 +7,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="main-header">
-    <div class="header-content">
-      <div class="logo-section">
-        <img src="logo.svg" alt="Eurovision" class="logo">
-        <h1>Eurovision 2026</h1>
-      </div>
-    </div>
-  </header>
-
   <div class="container">
+    <div class="landing-page">
+      <div class="landing-logo">
+        <img src="logo.svg" alt="Eurovision" class="landing-heart">
+      </div>
 
-    <div class="content">
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="name">Ditt navn:</label>
-          <input type="text" id="name" required placeholder="Skriv ditt navn...">
-        </div>
-        <button type="submit" class="btn">Start</button>
+      <h1 class="landing-title">Eurovision 2026</h1>
+
+      <form id="loginForm" class="landing-form">
+        <input type="text" id="name" required placeholder="Skriv ditt navn..." class="landing-input">
+        <button type="submit" class="landing-btn">Start</button>
       </form>
     </div>
   </div>
@@ -33,12 +26,7 @@
   <script>
     // Check if already logged in
     if (localStorage.getItem('sessionId')) {
-      const name = localStorage.getItem('userName');
-      if (name === 'Inge') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'songs.html';
-      }
+      window.location.href = 'songs.html';
     }
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -46,16 +34,12 @@
       const name = document.getElementById('name').value.trim();
 
       try {
-        if (name === 'Inge') {
-          // Admin login - go straight to admin panel
-          setSession(name, 'admin-session');
-          window.location.href = 'admin.html';
-        } else {
-          // Regular user
-          const result = await apiCall('/users', 'POST', { name });
-          setSession(name, result.sessionId);
-          window.location.href = 'songs.html';
+        const result = await apiCall('/users', 'POST', { name });
+        if (!result || !result.sessionId) {
+          throw new Error('Ingen sessionId mottatt fra server');
         }
+        setSession(name, result.sessionId);
+        window.location.href = 'songs.html';
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }

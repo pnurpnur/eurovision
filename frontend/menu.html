@@ -1,0 +1,28 @@
+<header class="main-header">
+  <div class="header-content">
+    <div class="logo-section" style="position: relative;">
+      <button id="menuBtn" class="menu-button" onclick="toggleMenu()">
+        <img src="logo.svg" alt="Eurovision Menu" class="logo">
+      </button>
+      <div id="dropdownMenu" class="dropdown-menu">
+        <a href="songs.html" id="menuSangene" onclick="closeMenu()">Sangene</a>
+        <a href="myPoints.html" id="menuMinePoeng" onclick="closeMenu()">Mine poeng</a>
+        <a href="results.html" id="menuResultat" onclick="closeMenu()">Resultat</a>
+        <a href="admin.html" id="menuAdmin" style="display: none;" onclick="closeMenu()">Admin</a>
+
+        <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 20px; margin: 8px 0;">
+          <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">Score-metode</div>
+          <div id="scoreMethodMenu" style="display: flex; gap: 6px;">
+            <button id="scoreMethod1-10" class="score-method-btn" onclick="changeScoreMethod('1-10'); closeMenu()" data-method="1-10">1-10</button>
+            <button id="scoreMethodDice" class="score-method-btn" onclick="changeScoreMethod('dice'); closeMenu()" data-method="dice">🎲</button>
+            <button id="scoreMethodScale" class="score-method-btn" onclick="changeScoreMethod('scale'); closeMenu()" data-method="scale">+ −</button>
+          </div>
+        </div>
+
+        <button onclick="logout()">Logg ut</button>
+      </div>
+    </div>
+    <h1>Eurovision 2026</h1>
+  </div>
+</header>
+<div id="menuBackdrop" class="menu-backdrop" onclick="closeMenu()"></div>

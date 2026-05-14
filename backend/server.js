@@ -59,7 +59,7 @@ function normalizeScore(score, method) {
   return 0;
 }
 
-// POST /api/users - register user
+// POST /api/users - register or login user
 app.post('/api/users', async (req, res) => {
   const { name } = req.body;
   if (!name || name.trim() === '') {
@@ -67,14 +67,29 @@ app.post('/api/users', async (req, res) => {
   }
 
   const sessionId = uuidv4();
+  const trimmedName = name.trim();
+
   try {
-    const info = await dbRun(db,
-      'INSERT INTO users (name, sessionId) VALUES (?, ?)',
-      [name.trim(), sessionId]
-    );
-    res.json({ userId: info.lastID, sessionId });
+    // Check if user already exists
+    const existingUser = await dbGet(db, 'SELECT id FROM users WHERE name = ?', [trimmedName]);
+
+    if (existingUser) {
+      // User exists - update sessionId
+      await dbRun(db,
+        'UPDATE users SET sessionId = ? WHERE name = ?',
+        [sessionId, trimmedName]
+      );
+      res.json({ userId: existingUser.id, sessionId, name: trimmedName });
+    } else {
+      // New user - create entry
+      const info = await dbRun(db,
+        'INSERT INTO users (name, sessionId) VALUES (?, ?)',
+        [trimmedName, sessionId]
+      );
+      res.json({ userId: info.lastID, sessionId, name: trimmedName });
+    }
   } catch (err) {
-    res.status(400).json({ error: 'Name already taken' });
+    res.status(500).json({ error: err.message });
   }
 });
 

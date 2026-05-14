@@ -7,24 +7,9 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="main-header">
-    <div class="header-content">
-      <div class="logo-section">
-        <img src="logo.svg" alt="Eurovision" class="logo">
-        <h1>Eurovision 2026</h1>
-      </div>
-      <div class="user-info">
-        <button onclick="logout()" class="logout-btn">Logg ut</button>
-      </div>
-    </div>
-  </header>
+  <div id="menuContainer"></div>
 
   <div class="container">
-    <nav>
-      <a href="songs.html" class="active">Sangene</a>
-      <a href="myPoints.html">Mine poeng</a>
-      <a href="results.html">Resultat</a>
-    </nav>
 
     <div class="songs-container">
       <div class="song-card-wrapper">
@@ -36,11 +21,9 @@
         <div class="selector-scroll" id="selectorScroll"></div>
       </div>
 
-      <!-- Navigation buttons -->
+      <!-- Song counter only -->
       <div class="song-nav">
-        <button onclick="previousSong()" class="nav-btn">← Forrige</button>
         <span id="songCounter" class="song-counter">1 / 25</span>
-        <button onclick="nextSong()" class="nav-btn">Neste →</button>
       </div>
     </div>
   </div>
@@ -52,6 +35,7 @@
     }
 
     const session = getSession();
+
     let songs = [];
     let ratings = {};
     let currentIndex = 0;
@@ -73,10 +57,8 @@
           };
         });
 
-        if (myRatings.length > 0) {
-          currentScoreMethod = myRatings[0].scoreMethod;
-          saveScoreMethod(currentScoreMethod);
-        }
+        // Don't override the score method from localStorage - keep user's current choice
+        // The ratings are stored normalized, so they convert correctly regardless of method
 
         renderSongSelector();
         renderCurrentSong();
@@ -86,12 +68,58 @@
       }
     }
 
-    function renderCurrentSong() {
-      const song = songs[currentIndex];
-      const rating = ratings[song.id] || {};
+    function generateScoreInput(rating) {
       const displayScore = rating.score !== undefined
         ? convertScore(rating.score, 'normalized', currentScoreMethod)
-        : '';
+        : null;
+
+      if (currentScoreMethod === '1-10') {
+        const val = displayScore || '5';
+        return `
+          <div class="slider-wrapper">
+            <div class="slider-value-display">${val}</div>
+            <input type="range" min="1" max="10" class="score-input score-slider" value="${val}">
+          </div>
+        `;
+      } else if (currentScoreMethod === 'dice') {
+        const diceSVGs = {
+          1: '<svg viewBox="0 0 24 24" class="dice-svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+          2: '<svg viewBox="0 0 24 24" class="dice-svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1.5" fill="currentColor"/></svg>',
+          3: '<svg viewBox="0 0 24 24" class="dice-svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1.5" fill="currentColor"/></svg>',
+          4: '<svg viewBox="0 0 24 24" class="dice-svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="7" r="1.5" fill="currentColor"/><circle cx="7" cy="17" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1.5" fill="currentColor"/></svg>',
+          5: '<svg viewBox="0 0 24 24" class="dice-svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="7" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="7" cy="17" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1.5" fill="currentColor"/></svg>',
+          6: '<svg viewBox="0 0 24 24" class="dice-svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="7" cy="12" r="1.5" fill="currentColor"/><circle cx="7" cy="17" r="1.5" fill="currentColor"/><circle cx="17" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="12" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1.5" fill="currentColor"/></svg>'
+        };
+        const buttons = [1, 2, 3, 4, 5, 6].map(num => {
+          const activeClass = displayScore === num ? ' active' : '';
+          return `<button type="button" class="score-button${activeClass}" data-score="${num}">${diceSVGs[num]}</button>`;
+        }).join('');
+        return `<div class="score-buttons-group">${buttons}</div>`;
+      } else if (currentScoreMethod === 'scale') {
+        const scaleButtons = [
+          { label: '−−', value: -2 },
+          { label: '−', value: -1 },
+          { label: '0', value: 0 },
+          { label: '+', value: 1 },
+          { label: '++', value: 2 }
+        ];
+        const buttons = scaleButtons.map(btn => {
+          const activeClass = displayScore === btn.value ? ' active' : '';
+          return `<button type="button" class="score-button${activeClass}" data-score="${btn.value}">${btn.label}</button>`;
+        }).join('');
+        return `<div class="score-buttons-group">${buttons}</div>`;
+      }
+      return '';
+    }
+
+    function renderCurrentSong() {
+      if (!songs || songs.length === 0) return;
+
+      const song = songs[currentIndex];
+      if (!song || !song.id) return;
+
+      const rating = ratings[song.id] || {};
+      const scoreInput = generateScoreInput(rating);
 
       const card = document.getElementById('songCard');
       card.innerHTML = `
@@ -107,18 +135,13 @@
 
         <div class="song-form">
           <div class="form-group">
-            <label>Score-metode</label>
-            <div class="score-method-buttons">
-              <button type="button" class="method-btn ${currentScoreMethod === '1-10' ? 'active' : ''}" data-method="1-10">1-10</button>
-              <button type="button" class="method-btn ${currentScoreMethod === 'dice' ? 'active' : ''}" data-method="dice">🎲</button>
-              <button type="button" class="method-btn ${currentScoreMethod === 'scale' ? 'active' : ''}" data-method="scale">±</button>
-            </div>
-            <input type="text" class="score-input" placeholder="Score..." value="${displayScore}">
+            <label>Score</label>
+            ${scoreInput}
           </div>
 
           <div class="form-group">
             <label>Notater</label>
-            <textarea class="notes-input" placeholder="Dine private notater...">${rating.notes || ''}</textarea>
+            <textarea class="notes-input" placeholder="Dine notater...">${rating.notes || ''}</textarea>
           </div>
         </div>
       `;
@@ -164,65 +187,65 @@
     }
 
     function attachEventListeners(song) {
-      document.querySelectorAll('.method-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const oldMethod = currentScoreMethod;
-          const newMethod = btn.dataset.method;
+      if (!song || !song.id) return;
 
-          document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
+      const notesInput = document.querySelector('.notes-input');
+      if (!notesInput) return;
 
-          currentScoreMethod = newMethod;
-          saveScoreMethod(newMethod);
+      // Helper function to save score (has access to song via closure)
+      const saveScore = (scoreValue) => {
+        // Send raw score to backend - let backend handle normalization
+        const normalizedForDisplay = normalizeScore(scoreValue || 0, currentScoreMethod);
 
-          const scoreInput = document.querySelector('.score-input');
-          if (scoreInput.value) {
-            const normalized = normalizeScore(scoreInput.value, oldMethod);
-            const converted = convertScore(normalized, 'normalized', newMethod);
-            scoreInput.value = converted;
-          }
+        ratings[song.id] = { score: normalizedForDisplay, scoreMethod: currentScoreMethod, notes: notesInput.value };
+
+        apiCall('/ratings', 'POST', {
+          sessionId: session.sessionId,
+          songId: song.id,
+          score: scoreValue || 0,  // Send raw score, not normalized
+          scoreMethod: currentScoreMethod,
+          notes: notesInput.value
+        }).catch(error => {
+          showMessage(`Feil: ${error.message}`, 'error');
         });
-      });
+      };
 
-      document.querySelector('.score-input').addEventListener('change', async () => {
-        const scoreInput = document.querySelector('.score-input');
-        const notesInput = document.querySelector('.notes-input');
-        const score = normalizeScore(scoreInput.value || 0, currentScoreMethod);
+      // Handle different score input types
+      if (currentScoreMethod === '1-10') {
+        const slider = document.querySelector('.score-slider');
+        const display = document.querySelector('.slider-value-display');
 
-        ratings[song.id] = { score, scoreMethod: currentScoreMethod, notes: notesInput.value };
-
-        try {
-          await apiCall('/ratings', 'POST', {
-            sessionId: session.sessionId,
-            songId: song.id,
-            score,
-            scoreMethod: currentScoreMethod,
-            notes: notesInput.value
+        if (slider && display) {
+          slider.addEventListener('input', () => {
+            display.textContent = slider.value;
           });
-        } catch (error) {
-          showMessage(`Feil: ${error.message}`, 'error');
-        }
-      });
-
-      document.querySelector('.notes-input').addEventListener('change', async () => {
-        const scoreInput = document.querySelector('.score-input');
-        const notesInput = document.querySelector('.notes-input');
-        const score = normalizeScore(scoreInput.value || 0, currentScoreMethod);
-
-        ratings[song.id] = { score, scoreMethod: currentScoreMethod, notes: notesInput.value };
-
-        try {
-          await apiCall('/ratings', 'POST', {
-            sessionId: session.sessionId,
-            songId: song.id,
-            score,
-            scoreMethod: currentScoreMethod,
-            notes: notesInput.value
+          slider.addEventListener('change', () => {
+            saveScore(slider.value);
           });
-        } catch (error) {
-          showMessage(`Feil: ${error.message}`, 'error');
         }
+      } else {
+        // For dice and scale methods, use button clicks
+        const buttons = document.querySelectorAll('.score-button');
+        buttons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            buttons.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+            // Save the score
+            saveScore(btn.dataset.score);
+          });
+        });
+      }
+
+      // Notes input listener
+      notesInput.addEventListener('change', async () => {
+        const scoreInput = document.querySelector('.score-input');
+        const scoreValue = currentScoreMethod === '1-10'
+          ? scoreInput?.value
+          : document.querySelector('.score-button.active')?.dataset.score || 0;
+
+        await saveScore(scoreValue);
       });
     }
 
@@ -256,6 +279,25 @@
       clearSession();
       window.location.href = 'index.html';
     }
+
+    // Listen for score method changes from menu
+    window.addEventListener('scoreMethodChanged', (e) => {
+      const oldMethod = currentScoreMethod;
+      const newMethod = e.detail.method;
+      currentScoreMethod = newMethod;
+
+      // Re-render current song to update score display
+      const song = songs[currentIndex];
+      if (song) {
+        const scoreInput = document.querySelector('.score-input');
+        if (scoreInput && scoreInput.value) {
+          const normalized = normalizeScore(scoreInput.value, oldMethod);
+          const converted = convertScore(normalized, 'normalized', newMethod);
+          scoreInput.value = converted;
+        }
+        renderCurrentSong();
+      }
+    });
 
     loadSongs();
   </script>

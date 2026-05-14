@@ -167,3 +167,127 @@ function getDragAfterElement(container, y) {
     }
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
+
+// Menu functions
+function toggleMenu() {
+  const menu = document.getElementById('dropdownMenu');
+  const backdrop = document.getElementById('menuBackdrop');
+  const button = document.getElementById('menuBtn');
+
+  if (menu && backdrop && button) {
+    menu.classList.toggle('active');
+    backdrop.classList.toggle('active');
+    button.classList.toggle('active');
+
+    if (menu.classList.contains('active')) {
+      positionMenu();
+    }
+  }
+}
+
+function closeMenu() {
+  const menu = document.getElementById('dropdownMenu');
+  const backdrop = document.getElementById('menuBackdrop');
+  const button = document.getElementById('menuBtn');
+
+  if (menu && backdrop && button) {
+    menu.classList.remove('active');
+    backdrop.classList.remove('active');
+    button.classList.remove('active');
+  }
+}
+
+function positionMenu() {
+  const button = document.getElementById('menuBtn');
+  const menu = document.getElementById('dropdownMenu');
+  if (button && menu) {
+    const rect = button.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 8) + 'px';
+    menu.style.left = rect.left + 'px';
+  }
+}
+
+// Load menu and initialize
+function loadMenu() {
+  fetch('menu.html')
+    .then(r => r.text())
+    .then(html => {
+      const container = document.getElementById('menuContainer');
+      if (container) {
+        container.innerHTML = html;
+        initializeMenu();
+      }
+    });
+}
+
+function initializeMenu() {
+  // Close menu on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMenu();
+    }
+  });
+
+  // Reposition on scroll/resize
+  window.addEventListener('scroll', positionMenu);
+  window.addEventListener('resize', positionMenu);
+
+  // Set active menu item
+  const currentPage = window.location.pathname.split('/').pop() || 'songs.html';
+  const pageMap = {
+    'songs.html': 'menuSangene',
+    'myPoints.html': 'menuMinePoeng',
+    'results.html': 'menuResultat',
+    'admin.html': 'menuAdmin'
+  };
+
+  const activeId = pageMap[currentPage];
+  if (activeId && document.getElementById(activeId)) {
+    document.getElementById(activeId).classList.add('active');
+  }
+
+  // Show admin link for Inge
+  const session = getSession();
+  if (session && session.name === 'Inge') {
+    const adminLink = document.getElementById('menuAdmin');
+    if (adminLink) adminLink.style.display = 'block';
+  }
+}
+
+// Change score method from menu
+function changeScoreMethod(method) {
+  saveScoreMethod(method);
+
+  // Update buttons
+  document.querySelectorAll('.score-method-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  const activeBtn = document.querySelector(`.score-method-btn[data-method="${method}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+  }
+
+  // Emit custom event for songs page to re-render
+  window.dispatchEvent(new CustomEvent('scoreMethodChanged', { detail: { method } }));
+}
+
+// Update score method buttons in menu
+function updateScoreMethodButtons() {
+  const currentMethod = getStoredScoreMethod();
+  document.querySelectorAll('.score-method-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.method === currentMethod) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+// Load menu when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadMenu);
+} else {
+  loadMenu();
+}
+
+// Update score method buttons after menu loads
+setTimeout(updateScoreMethodButtons, 100);

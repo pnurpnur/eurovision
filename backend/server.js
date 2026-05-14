@@ -2,10 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import { initDb, getDb } from './db.js';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve frontend static files
+app.use(express.static(join(__dirname, '../frontend')));
 
 // Helper: promisify db.run
 function dbRun(db, sql, params = []) {
@@ -226,7 +233,12 @@ app.post('/api/admin/lock-results', async (req, res) => {
   }
 });
 
+// Fallback for SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(join(__dirname, '../frontend/index.html'));
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`🎵 Eurovision backend running on http://localhost:${PORT}`);
+  console.log(`🎵 Eurovision app running on http://localhost:${PORT}`);
 });

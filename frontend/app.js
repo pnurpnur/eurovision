@@ -1,5 +1,13 @@
-// Configuration
-const API_URL = localStorage.getItem('apiUrl') || 'http://localhost:3001/api';
+// Configuration - auto-detect API URL
+const API_URL = (() => {
+  // If on Railway or deployed: use same origin
+  // If on localhost: use localhost:3001
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3001/api';
+  }
+  // Production: use same origin as frontend
+  return `${window.location.origin}/api`;
+})();
 
 // Get session from localStorage
 function getSession() {

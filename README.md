@@ -15,23 +15,41 @@ En enkel og lettvekt voting-app for Eurovision med 10 deltakere.
 - **Frontend**: Vanilla HTML/CSS/JavaScript
 - **Hosting**: Railway (backend), Vercel (frontend)
 
-## Setup
+## Local Development
 
-### Backend
 ```bash
+# Install dependencies
 cd backend
 npm install
 npm run seed    # Populate database with 25 Eurovision 2026 songs
 npm start       # Start server on http://localhost:3001
 ```
 
-### Frontend
-```bash
-cd frontend
-# Deploy to Vercel, or serve locally during development
-```
+Then open `http://localhost:3001` in your browser. Frontend is served from the same Express server.
 
-Set `REACT_APP_API_URL` environment variable to point to your backend API.
+## Deployment on Railway
+
+Both backend and frontend are served from the same Node.js app on Railway.
+
+### Steps:
+1. Create a Railway project: https://railway.app
+2. Connect your GitHub repo
+3. Add environment variables if needed
+4. Deploy!
+
+Railway will automatically:
+- Install dependencies (`npm install`)
+- Run the start script (`npm start`)
+- Serve frontend + backend from the same app
+
+**Database:** SQLite file is persisted on Railway's volume storage (one time setup required).
+
+### First deployment checklist:
+- [ ] Push code to GitHub
+- [ ] Railway connected to repo
+- [ ] Server starts with `npm start`
+- [ ] API endpoint works: `/api/songs`
+- [ ] Frontend loads at root: `/`
 
 ## Admin
 Bruker med navn "Inge" kan låse resultatene via admin-panelet.

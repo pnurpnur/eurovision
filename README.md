@@ -27,6 +27,22 @@ npm start       # Start server on http://localhost:3001
 
 Then open `http://localhost:3001` in your browser. Frontend is served from the same Express server.
 
+## Updating Songs from Wikipedia
+
+When the Eurovision 2026 final results are published on Wikipedia, update the song list:
+
+```bash
+cd backend
+npm run update-songs    # Fetches final songs from Wikipedia
+npm start              # Start app to verify
+```
+
+Then use the **Admin Panel** to add image URLs:
+1. Go to http://localhost:3001/admin.html
+2. Login as `Inge`
+3. Edit each song and add the image URL
+4. Click "Lagre" to save
+
 ## Deployment on Railway
 
 Both backend and frontend are served from the same Node.js app on Railway.

@@ -46,7 +46,14 @@ function dbAll(db, sql, params = []) {
 
 // Initialize DB on startup
 let db;
-await initDb().then(d => { db = d; });
+console.log('[SERVER] Starting Eurovision backend server...');
+await initDb().then(d => {
+  db = d;
+  console.log('[SERVER] Database initialized');
+}).catch(err => {
+  console.error('[SERVER] Failed to initialize database:', err);
+  process.exit(1);
+});
 
 // Helper: normalize score to 0-10
 function normalizeScore(score, method) {
@@ -70,11 +77,14 @@ app.post('/api/users', async (req, res) => {
   const trimmedName = name.trim();
 
   try {
+    console.log(`[LOGIN] User "${trimmedName}" attempting login with sessionId: ${sessionId}`);
+
     // Check if user already exists
     const existingUser = await dbGet(db, 'SELECT id FROM users WHERE name = ?', [trimmedName]);
 
     if (existingUser) {
       // User exists - update sessionId
+      console.log(`[LOGIN] User exists, updating sessionId`);
       await dbRun(db,
         'UPDATE users SET sessionId = ? WHERE name = ?',
         [sessionId, trimmedName]
@@ -82,6 +92,7 @@ app.post('/api/users', async (req, res) => {
       res.json({ userId: existingUser.id, sessionId, name: trimmedName });
     } else {
       // New user - create entry
+      console.log(`[LOGIN] Creating new user`);
       const info = await dbRun(db,
         'INSERT INTO users (name, sessionId) VALUES (?, ?)',
         [trimmedName, sessionId]
@@ -89,6 +100,7 @@ app.post('/api/users', async (req, res) => {
       res.json({ userId: info.lastID, sessionId, name: trimmedName });
     }
   } catch (err) {
+    console.error(`[LOGIN ERROR] ${err.message}`, err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -131,9 +143,18 @@ app.get('/api/my-ratings', async (req, res) => {
   const { sessionId } = req.query;
 
   try {
+    console.log(`[RATINGS] Checking sessionId: ${sessionId}`);
     const user = await dbGet(db, 'SELECT id FROM users WHERE sessionId = ?', [sessionId]);
-    if (!user) return res.status(401).json({ error: 'Invalid session' });
 
+    if (!user) {
+      console.log(`[RATINGS ERROR] No user found for sessionId: ${sessionId}`);
+      // Debug: list all users in database
+      const allUsers = await dbAll(db, 'SELECT id, name, sessionId FROM users');
+      console.log(`[RATINGS DEBUG] Users in database:`, allUsers);
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+
+    console.log(`[RATINGS] Found user ${user.id}, fetching ratings`);
     const ratings = await dbAll(db,
       `SELECT r.*, s.number, s.country, s.title, s.artist
        FROM ratings r
@@ -145,6 +166,7 @@ app.get('/api/my-ratings', async (req, res) => {
 
     res.json(ratings);
   } catch (err) {
+    console.error(`[RATINGS ERROR] ${err.message}`, err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -16,12 +16,17 @@ export function initDb() {
     // Use persistent volume on Railway, or local backend directory
     const baseDir = process.env.NODE_ENV === 'production' ? '/data' : __dirname;
     const dbPath = path.join(baseDir, 'eurovision.db');
+    console.log(`[DB INIT] Initializing database at: ${dbPath}`);
+    console.log(`[DB INIT] NODE_ENV: ${process.env.NODE_ENV}`);
+
     db = new sqlite3.Database(dbPath, async (err) => {
       if (err) {
+        console.error(`[DB INIT ERROR] Failed to open database:`, err);
         reject(err);
         return;
       }
 
+      console.log(`[DB INIT] Database opened successfully`);
       try {
         // Create tables one by one
         await runAsync(db, `CREATE TABLE IF NOT EXISTS users (
@@ -67,6 +72,7 @@ export function initDb() {
 
         await runAsync(db, "INSERT OR IGNORE INTO appState (key, value) VALUES ('resultsLocked', 'false')");
 
+        console.log(`[DB INIT] Database initialization complete`);
         resolve(db);
       } catch (err) {
         reject(err);

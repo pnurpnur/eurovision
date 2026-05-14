@@ -178,12 +178,21 @@
       currentIndex = (currentIndex + 1) % songs.length;
       renderCurrentSong();
       renderSongSelector();
+      scrollToActiveButton();
     }
 
     function previousSong() {
       currentIndex = (currentIndex - 1 + songs.length) % songs.length;
       renderCurrentSong();
       renderSongSelector();
+      scrollToActiveButton();
+    }
+
+    function scrollToActiveButton() {
+      const activeButton = document.querySelector('.selector-scroll').children[currentIndex];
+      if (activeButton) {
+        activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
     }
 
     function attachEventListeners(song) {

@@ -229,8 +229,9 @@ app.get('/api/results', async (req, res) => {
     rankings.forEach(row => {
       const songIds = JSON.parse(row.rankedSongIds);
       songIds.slice(0, 10).forEach((songId, idx) => {
-        if (!results[songId]) results[songId] = 0;
-        results[songId] += pointsArray[idx];
+        if (!results[songId]) results[songId] = { points: 0, voters: [] };
+        results[songId].points += pointsArray[idx];
+        results[songId].voters.push({ name: row.name, points: pointsArray[idx] });
       });
     });
 
@@ -239,9 +240,10 @@ app.get('/api/results', async (req, res) => {
     const songMap = Object.fromEntries(songs.map(s => [s.id, s]));
 
     const output = Object.entries(results)
-      .map(([songId, points]) => ({
+      .map(([songId, data]) => ({
         ...songMap[songId],
-        points
+        points: data.points,
+        voters: data.voters.sort((a, b) => b.points - a.points)
       }))
       .sort((a, b) => b.points - a.points);
 

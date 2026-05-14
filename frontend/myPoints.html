@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#FF006B">
   <meta name="description" content="Eurovision voting app - Score and rank your favorite songs">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Eurovision">
@@ -19,20 +20,7 @@
 
   <div class="container">
     <div class="content">
-      <h2>Mine poeng</h2>
-      <p class="subtitle">Dra og slipp for å sortere - top 10 får poeng</p>
-
       <div id="rankingList" class="my-points-list"></div>
-
-      <div class="my-points-buttons">
-        <button class="btn btn-secondary" onclick="navigateTo('songs')">← Tilbake til sangene</button>
-        <button class="btn" id="submitBtn" onclick="submitRanking()">Send inn ranking</button>
-      </div>
-
-      <div id="submittedInfo" class="submitted-info" style="display: none;">
-        <p>✓ Din ranking er sendt inn!</p>
-        <button class="btn btn-secondary" onclick="editRanking()" style="margin-top: 10px;">Endre ranking</button>
-      </div>
     </div>
   </div>
 
@@ -43,10 +31,8 @@
     }
 
     const session = getSession();
-    const POINTS_ARRAY = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
     let songs = [];
     let ratings = {};
-    let submitted = false;
 
     async function loadData() {
       try {
@@ -59,18 +45,6 @@
             notes: r.notes || ''
           };
         });
-
-        // Check if submitted
-        try {
-          const myRanking = await apiCall(`/my-ranking?sessionId=${session.sessionId}`);
-          if (myRanking && myRanking.rankedSongIds) {
-            submitted = true;
-            document.getElementById('submitBtn').style.display = 'none';
-            document.getElementById('submittedInfo').style.display = 'block';
-          }
-        } catch (err) {
-          // No ranking submitted yet
-        }
 
         renderRanking();
       } catch (error) {
@@ -96,32 +70,29 @@
         const points = idx < 10 ? POINTS_ARRAY[idx] : 0;
 
         const item = document.createElement('div');
-        item.className = 'my-points-item';
-        item.draggable = true;
+        item.className = `my-points-item ${idx < 10 ? 'top-10' : ''}`;
         item.dataset.songId = song.id;
         item.dataset.rank = idx + 1;
 
         const notesHtml = notes ? `<div class="notes-bubble">${notes}</div>` : '';
+        const pointsHtml = points > 0 ? `<div class="points-display">${points}p</div>` : '';
 
         item.innerHTML = `
-          <div class="rank-number">#${idx + 1}</div>
-          <div class="song-info">
-            <div class="song-header">
-              <span class="song-number">#${song.number}</span>
-              <span class="song-country">${song.country}</span>
-            </div>
-            ${notesHtml}
-          </div>
-          <div class="points-display">${points} poeng</div>
+          <span class="song-country">${song.country}</span>
+          ${notesHtml}
+          ${pointsHtml}
         `;
 
         list.appendChild(item);
       });
 
       setupDragDrop('.my-points-list', '.my-points-item');
+
+      // Auto-save after drag-and-drop
+      document.getElementById('rankingList').addEventListener('dragend', saveDragOrder);
     }
 
-    async function submitRanking() {
+    async function saveDragOrder() {
       const list = document.getElementById('rankingList');
       const rankedIds = Array.from(list.querySelectorAll('.my-points-item'))
         .map(el => parseInt(el.dataset.songId));
@@ -131,20 +102,9 @@
           sessionId: session.sessionId,
           rankedSongIds: rankedIds
         });
-
-        submitted = true;
-        document.getElementById('submitBtn').style.display = 'none';
-        document.getElementById('submittedInfo').style.display = 'block';
-        showMessage('Ranking sendt inn!', 'success');
       } catch (error) {
-        showMessage(`Feil: ${error.message}`, 'error');
+        showMessage(`Feil ved lagring: ${error.message}`, 'error');
       }
-    }
-
-    function editRanking() {
-      submitted = false;
-      document.getElementById('submitBtn').style.display = 'block';
-      document.getElementById('submittedInfo').style.display = 'none';
     }
 
     function logout() {

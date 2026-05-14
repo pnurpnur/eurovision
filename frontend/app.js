@@ -120,57 +120,98 @@ function navigateTo(page) {
   window.location.href = `${page}.html`;
 }
 
-// Drag and drop setup for ranking
+// Drag and drop setup - supports both mouse and touch
 function setupDragDrop(listSelector, itemSelector) {
-  let draggedElement = null;
+  const list = document.querySelector(listSelector);
+  if (!list) return;
 
-  // Use provided item selector or default to ranking-item
   const selector = itemSelector || '.ranking-item';
+  let dragging = null;
+  let placeholder = null;
 
-  document.addEventListener('dragstart', (e) => {
-    if (e.target.matches(selector)) {
-      draggedElement = e.target;
-      e.target.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
+  function getItemAt(y) {
+    const items = [...list.querySelectorAll(selector)].filter(el => el !== dragging);
+    for (const item of items) {
+      const box = item.getBoundingClientRect();
+      if (y < box.top + box.height / 2) return item;
     }
-  });
+    return null;
+  }
 
-  document.addEventListener('dragend', (e) => {
-    if (e.target.matches(selector)) {
-      e.target.classList.remove('dragging');
+  function startDrag(item) {
+    dragging = item;
+    placeholder = document.createElement('div');
+    placeholder.style.cssText = `height: ${item.offsetHeight}px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); margin: 0;`;
+    item.after(placeholder);
+    item.classList.add('dragging');
+    item.style.position = 'fixed';
+    item.style.zIndex = '9999';
+    item.style.width = item.parentElement.offsetWidth - 28 + 'px';
+    item.style.pointerEvents = 'none';
+  }
+
+  function moveDrag(y) {
+    if (!dragging) return;
+    dragging.style.top = (y - dragging.offsetHeight / 2) + 'px';
+    const after = getItemAt(y);
+    if (after) {
+      list.insertBefore(placeholder, after);
+    } else {
+      list.appendChild(placeholder);
     }
-  });
+  }
 
-  document.addEventListener('dragover', (e) => {
+  function endDrag() {
+    if (!dragging) return;
+    dragging.classList.remove('dragging');
+    dragging.style.position = '';
+    dragging.style.zIndex = '';
+    dragging.style.width = '';
+    dragging.style.top = '';
+    dragging.style.pointerEvents = '';
+    list.insertBefore(dragging, placeholder);
+    placeholder.remove();
+    dragging = null;
+    placeholder = null;
+    list.dispatchEvent(new Event('dragend'));
+  }
+
+  // Mouse events
+  list.addEventListener('mousedown', (e) => {
+    const item = e.target.closest(selector);
+    if (!item) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-
-    const afterElement = getDragAfterElement(listSelector, selector, e.clientY);
-    const list = document.querySelector(listSelector);
-
-    if (afterElement == null) {
-      list.appendChild(draggedElement);
-    } else {
-      list.insertBefore(draggedElement, afterElement);
-    }
+    startDrag(item);
+    moveDrag(e.clientY);
   });
-}
 
-function getDragAfterElement(container, itemSelector, y) {
-  // Use provided item selector or default to ranking-item
-  const selector = itemSelector || '.ranking-item';
-  const items = [...document.querySelectorAll(`${container} ${selector}:not(.dragging)`)];
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    moveDrag(e.clientY);
+  });
 
-  return items.reduce((closest, child) => {
-    const box = child.getBoundingClientRect();
-    const offset = y - box.top - box.height / 2;
+  document.addEventListener('mouseup', () => {
+    if (dragging) endDrag();
+  });
 
-    if (offset < 0 && offset > closest.offset) {
-      return { offset: offset, element: child };
-    } else {
-      return closest;
-    }
-  }, { offset: Number.NEGATIVE_INFINITY }).element;
+  // Touch events
+  list.addEventListener('touchstart', (e) => {
+    const item = e.target.closest(selector);
+    if (!item) return;
+    e.preventDefault();
+    startDrag(item);
+    moveDrag(e.touches[0].clientY);
+  }, { passive: false });
+
+  list.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    e.preventDefault();
+    moveDrag(e.touches[0].clientY);
+  }, { passive: false });
+
+  list.addEventListener('touchend', () => {
+    if (dragging) endDrag();
+  });
 }
 
 // Menu functions

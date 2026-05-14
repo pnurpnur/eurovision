@@ -991,7 +991,7 @@ textarea {
     padding: 20px;
   }
 
-  .song-header {
+  .song-header:not(.my-points-item .song-header) {
     flex-direction: column;
   }
 
@@ -1184,6 +1184,84 @@ textarea {
   animation: fadeIn 0.3s ease-out;
 }
 
+/* Results Page */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.result-row {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.result-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.result-main:hover,
+.result-main.open {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.result-place {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  min-width: 24px;
+  text-align: center;
+}
+
+.result-country {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.result-points {
+  font-size: 17px;
+  font-weight: 700;
+  color: oklch(61.3% .2412 13.09);
+}
+
+.result-voters {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 16px 10px;
+}
+
+.voter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+  color: white;
+}
+
+.voter-row:last-child {
+  border-bottom: none;
+}
+
+.voter-name {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.voter-points {
+  font-weight: 700;
+  color: oklch(61.3% .2412 13.09);
+}
+
 /* My Points Page */
 .my-points-list {
   display: flex;
@@ -1195,15 +1273,14 @@ textarea {
 .my-points-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px;
+  gap: 12px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   cursor: grab;
-  transition: all 0.2s;
+  transition: background 0.2s, transform 0.15s;
   user-select: none;
-  touch-action: none;
 }
 
 .my-points-item:active {
@@ -1217,73 +1294,48 @@ textarea {
   transform: scale(0.95);
 }
 
-.rank-number {
-  min-width: 40px;
-  font-weight: 700;
-  font-size: 16px;
-  color: oklch(61.3% .2412 13.09);
-  text-align: center;
+.my-points-item.top-10 {
+  background: linear-gradient(90deg, rgba(0, 168, 232, 0.15), rgba(255, 0, 107, 0.1));
+  border-color: rgba(0, 168, 232, 0.3);
+  box-shadow: 0 0 16px rgba(0, 168, 232, 0.2);
 }
 
-.song-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.song-header {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.song-number {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
+.my-points-item:nth-child(11) {
+  padding-top: 14px;
+  margin-top: 4px;
 }
 
 .song-country {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .notes-bubble {
-  background: rgba(0, 168, 232, 0.15);
-  border: 1px solid rgba(0, 168, 232, 0.3);
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
-  max-width: 250px;
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 253, 200, 0.12);
+  border: 1px solid rgba(255, 253, 200, 0.25);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: rgba(255, 253, 200, 0.9);
   word-wrap: break-word;
-  position: relative;
-  margin-top: 2px;
-}
-
-.notes-bubble::before {
-  content: '';
-  position: absolute;
-  left: -6px;
-  top: 8px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 4px 6px 4px 0;
-  border-color: transparent rgba(0, 168, 232, 0.3) transparent transparent;
+  white-space: normal;
+  font-style: italic;
+  overflow: hidden;
 }
 
 .points-display {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   color: oklch(61.3% .2412 13.09);
-  min-width: 80px;
+  min-width: 44px;
   text-align: right;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .my-points-buttons {

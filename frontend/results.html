@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#FF006B">
   <meta name="description" content="Eurovision voting app - Score and rank your favorite songs">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Eurovision">
@@ -18,27 +19,9 @@
   <div id="menuContainer"></div>
 
   <div class="container">
-
     <div class="content">
-      <div id="adminPanel" style="margin-bottom: 20px;"></div>
-
-      <h2 id="resultTitle">Samlet resultat fra alle deltakere</h2>
-      <table class="results-table">
-        <thead>
-          <tr>
-            <th>Rang</th>
-            <th>Land</th>
-            <th>Artist</th>
-            <th>Sang</th>
-            <th>Poeng</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-      </table>
-
-      <div id="lockedMessage" style="display: none; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; color: #721c24; text-align: center; font-weight: bold;">
-        ✓ Resultatene er lukket!
-      </div>
+      <div id="adminPanel"></div>
+      <div id="resultsList" class="results-list"></div>
     </div>
   </div>
 
@@ -48,13 +31,13 @@
       window.location.href = 'index.html';
     }
 
+    const session = getSession();
+
     async function loadResults() {
       try {
         const data = await apiCall('/results');
-        const { results, resultsLocked } = data;
-
         renderAdminPanel();
-        renderResults(results, resultsLocked);
+        renderResults(data.results, data.resultsLocked);
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }
@@ -62,60 +45,67 @@
 
     function renderAdminPanel() {
       const panel = document.getElementById('adminPanel');
-
       if (session.name === 'Inge') {
         panel.innerHTML = `
-          <div class="admin-panel">
-            <h3>🔧 Admin-panel</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div>
-                <p>Rediger sang-informasjon og bilder:</p>
-                <button onclick="window.location.href='admin.html'" style="width: 100%; margin-top: 5px;">Admin Panel</button>
-              </div>
-              <div>
-                <p>Lukk avstemningen når alle har stemt:</p>
-                <button onclick="lockResults()" style="width: 100%; margin-top: 5px;">Lukk avstemningen</button>
-              </div>
-            </div>
+          <div class="admin-panel" style="margin-bottom: 16px;">
+            <button onclick="lockResults()">🔒 Lukk avstemningen</button>
           </div>
         `;
       }
     }
 
     function renderResults(results, resultsLocked) {
-      const body = document.getElementById('resultsBody');
-      body.innerHTML = '';
+      const list = document.getElementById('resultsList');
+      list.innerHTML = '';
 
       if (resultsLocked) {
-        document.getElementById('resultTitle').style.display = 'none';
-        document.getElementById('resultsBody').parentElement.style.display = 'none';
-        document.getElementById('lockedMessage').style.display = 'block';
+        list.innerHTML = '<p style="color: white; text-align: center; padding: 40px;">Resultatene er lukket.</p>';
         return;
       }
 
-      if (results.length === 0) {
-        body.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">Ingen resultater ennå</td></tr>';
+      if (!results || results.length === 0) {
+        list.innerHTML = '<p style="color: rgba(255,255,255,0.6); text-align: center; padding: 40px;">Ingen resultater ennå</p>';
         return;
       }
 
       results.forEach((result, idx) => {
-        const row = document.createElement('tr');
+        const row = document.createElement('div');
+        row.className = 'result-row';
+        const voters = result.voters || [];
+        console.log(`${result.country} voters:`, voters);
+
+        const votersHtml = voters.length > 0
+          ? voters.map(v => `
+              <div class="voter-row">
+                <span class="voter-name">${v.name}</span>
+                <span class="voter-points">${v.points}p</span>
+              </div>`).join('')
+          : `<div class="voter-row"><span class="voter-name" style="opacity:0.5">Ingen har stemt ennå</span></div>`;
+
         row.innerHTML = `
-          <td style="font-weight: bold; color: #667eea;">#${idx + 1}</td>
-          <td>${result.country}</td>
-          <td>${result.artist}</td>
-          <td>${result.title}</td>
-          <td style="font-weight: bold; font-size: 18px;">${result.points}</td>
+          <div class="result-main" onclick="toggleVoters(this)">
+            <span class="result-place">${idx + 1}</span>
+            <span class="result-country">${result.country}</span>
+            <span class="result-points">${result.points}p</span>
+          </div>
+          <div class="result-voters" style="display: none;">
+            ${votersHtml}
+          </div>
         `;
-        body.appendChild(row);
+
+        list.appendChild(row);
       });
     }
 
-    async function lockResults() {
-      if (!confirm('Er du sikker på at du vil lukke avstemningen? Dette kan ikke angres.')) {
-        return;
-      }
+    function toggleVoters(el) {
+      const voters = el.nextElementSibling;
+      const isOpen = voters.style.display !== 'none';
+      voters.style.display = isOpen ? 'none' : 'block';
+      el.classList.toggle('open', !isOpen);
+    }
 
+    async function lockResults() {
+      if (!confirm('Lukke avstemningen?')) return;
       try {
         await apiCall('/admin/lock-results', 'POST', { name: session.name });
         showMessage('Avstemningen er lukket!', 'success');
@@ -130,9 +120,7 @@
       window.location.href = 'index.html';
     }
 
-    // Reload every 5 seconds
     loadResults();
-    setInterval(loadResults, 5000);
   </script>
 </body>
 </html>

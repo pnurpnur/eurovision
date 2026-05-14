@@ -85,7 +85,7 @@ function convertScore(score, fromMethod, toMethod) {
 
 // Get stored scoring method
 function getStoredScoreMethod() {
-  return localStorage.getItem('scoreMethod') || '1-10';
+  return localStorage.getItem('scoreMethod') || 'dice';
 }
 
 // Save scoring method

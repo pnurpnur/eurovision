@@ -13,7 +13,9 @@ export function initDb() {
       return;
     }
 
-    const dbPath = path.join(__dirname, 'eurovision.db');
+    // Use persistent volume on Railway, or local backend directory
+    const baseDir = process.env.NODE_ENV === 'production' ? '/data' : __dirname;
+    const dbPath = path.join(baseDir, 'eurovision.db');
     db = new sqlite3.Database(dbPath, async (err) => {
       if (err) {
         reject(err);

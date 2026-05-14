@@ -4,7 +4,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "cd backend && npm start",
+    "startCommand": "cd backend && npm install && npm start",
     "restartPolicyMaxRetries": 5,
     "restartPolicyWindowMs": 60000
   },

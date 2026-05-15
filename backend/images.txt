@@ -1,25 +1,25 @@
-Østerrike	https://example.com/osterrike.jpg
-Frankrike	https://example.com/frankrike.jpg
-Tyskland	https://example.com/Tyskland.jpg
-Italia	https://example.com/italia.jpg
-Spania	https://example.com/spania.jpg
-Sverige	https://example.com/sverige.jpg
-Ukraina	https://example.com/ukraina.jpg
-Nederland	https://example.com/nederland.jpg
-Hellas	https://example.com/hellas.jpg
-Portugal	https://example.com/portugal.jpg
-Polen	https://example.com/polen.jpg
-Norge	https://example.com/norge.jpg
-Finland	https://example.com/finland.jpg
-Danmark	https://example.com/danmark.jpg
-Tsjekkia	https://example.com/tsjekkia.jpg
-Romania	https://example.com/romania.jpg
-Serbia	https://example.com/serbia.jpg
-Bulgaria	https://example.com/bulgaria.jpg
-Ungarn	https://example.com/ungarn.jpg
-Slovenia	https://example.com/slovenia.jpg
-Litauen	https://example.com/litauen.jpg
-Island	https://example.com/island.jpg
-Belgia	https://example.com/belgia.jpg
-Storbritannia	https://example.com/storbritannia.jpg
-Australia	https://example.com/australia.jpg
+Danmark	
+Tyskland
+Israel
+Belgia
+Albania
+Hellas
+Ukraina
+Australia
+Serbia
+Malta
+Tsjekkia
+Bulgaria
+Kroatia
+Storbritannia
+Frankrike
+Moldova	
+Finland	
+Polen
+Litauen
+Sverige
+Kypros
+Italia
+Norge
+Romania
+Østerrike

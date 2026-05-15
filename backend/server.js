@@ -313,6 +313,10 @@ app.post('/api/admin/update-songs', async (req, res) => {
     console.log('[ADMIN] Fetching songs from Wikipedia...');
     const songs = await fetchFinalsFromWikipedia();
 
+    // Delete all ratings and rankings (clean slate for new songs)
+    await dbRun(db, 'DELETE FROM ratings');
+    await dbRun(db, 'DELETE FROM finalRankings');
+
     // Delete all existing songs
     await dbRun(db, 'DELETE FROM songs');
 

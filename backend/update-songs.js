@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 export async function fetchFinalsFromWikipedia() {
   try {
     const url = 'https://no.wikipedia.org/wiki/Eurovision_Song_Contest_2026';

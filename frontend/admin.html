@@ -21,8 +21,19 @@
   <div class="container">
 
     <div class="content">
-      <h2>Rediger sang-informasjon</h2>
-      <p style="color: #666; margin-bottom: 20px;">Klikk på en sang for å redigere land, artist, tittel og bilde-URL.</p>
+      <div id="adminPanel"></div>
+
+      <div id="songsUpdatePanel" style="margin-bottom: 30px; display: none;">
+        <button onclick="updateSongs()" class="btn">🔄 Hent sanger fra Wikipedia</button>
+        <div id="songsUpdateResult" style="margin-top: 10px; color: white;"></div>
+      </div>
+
+      <div id="imageUpdatePanel" style="margin-bottom: 30px; display: none;">
+        <h3 style="color: white; margin-bottom: 15px;">Oppdater bildene</h3>
+        <textarea id="imageData" placeholder="Land&#9;Bilde-URL&#10;Norge&#9;https://...&#10;Sverige&#9;https://..." style="width: 100%; height: 150px; padding: 10px; border-radius: 8px; font-family: monospace;"></textarea>
+        <button onclick="updateImages()" class="btn" style="margin-top: 10px;">Oppdater bilder</button>
+        <div id="updateResult" style="margin-top: 10px; color: white;"></div>
+      </div>
 
       <div id="songsList"></div>
     </div>
@@ -43,7 +54,51 @@
     async function loadSongs() {
       try {
         songs = await apiCall('/songs');
+        const data = await apiCall('/results');
+        renderAdminPanel(data.resultsLocked);
         renderSongs();
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    function renderAdminPanel(resultsLocked) {
+      const panel = document.getElementById('adminPanel');
+      const buttonText = resultsLocked ? '🔓 Åpne avstemningen' : '🔒 Lukk avstemningen';
+      panel.innerHTML = `
+        <div class="admin-panel" style="margin-bottom: 20px;">
+          <button onclick="toggleResults()">${buttonText}</button>
+        </div>
+      `;
+
+      // Show update panels
+      document.getElementById('songsUpdatePanel').style.display = 'block';
+      document.getElementById('imageUpdatePanel').style.display = 'block';
+
+      // Load images.txt content
+      loadImageFile();
+    }
+
+    async function loadImageFile() {
+      try {
+        const result = await apiCall('/admin/images-file', 'GET');
+        document.getElementById('imageData').value = result.content;
+      } catch (error) {
+        console.log('images.txt not found or error:', error.message);
+      }
+    }
+
+    async function toggleResults() {
+      const panel = document.getElementById('adminPanel');
+      const button = panel.querySelector('button');
+      const isCurrentlylocked = button.textContent.includes('Åpne');
+
+      if (!confirm(isCurrentlylocked ? 'Åpne avstemningen?' : 'Lukke avstemningen?')) return;
+
+      try {
+        await apiCall('/admin/lock-results', 'POST', { name: session.name });
+        showMessage(isCurrentlylocked ? 'Avstemningen er åpnet!' : 'Avstemningen er lukket!', 'success');
+        setTimeout(() => loadSongs(), 1000);
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }
@@ -136,6 +191,63 @@
         cancelEdit(songId);
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    async function updateSongs() {
+      const resultDiv = document.getElementById('songsUpdateResult');
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Henter...';
+      btn.disabled = true;
+
+      try {
+        const result = await apiCall('/admin/update-songs', 'POST', {
+          name: session.name
+        });
+
+        resultDiv.innerHTML = `✓ Oppdatert ${result.inserted} sanger fra Wikipedia`;
+        showMessage('Sanger oppdatert!', 'success');
+        setTimeout(() => loadSongs(), 1000);
+      } catch (error) {
+        resultDiv.textContent = `❌ Feil: ${error.message}`;
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function updateImages() {
+      const textarea = document.getElementById('imageData');
+      const resultDiv = document.getElementById('updateResult');
+      const lines = textarea.value.trim().split('\n').filter(line => line.trim());
+
+      const imageUpdates = {};
+      for (const line of lines) {
+        const parts = line.split('\t');
+        if (parts.length >= 2) {
+          const country = parts[0].trim();
+          const imageUrl = parts[1].trim();
+          imageUpdates[country] = imageUrl;
+        }
+      }
+
+      if (Object.keys(imageUpdates).length === 0) {
+        resultDiv.textContent = '❌ Ingen data å oppdatere';
+        return;
+      }
+
+      try {
+        const result = await apiCall('/admin/update-images', 'POST', {
+          name: session.name,
+          imageUpdates
+        });
+
+        resultDiv.innerHTML = `✓ Oppdatert ${result.updated} sanger${result.notFound > 0 ? `, ${result.notFound} ikke funnet` : ''}`;
+        showMessage('Bilder oppdatert!', 'success');
+        setTimeout(() => loadSongs(), 1000);
+      } catch (error) {
+        resultDiv.textContent = `❌ Feil: ${error.message}`;
       }
     }
 

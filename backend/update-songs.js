@@ -1,8 +1,6 @@
-import { initDb, getDb } from './db.js';
 import fetch from 'node-fetch';
 
-// Fetch Wikipedia and parse the final songs table
-async function fetchFinalsFromWikipedia() {
+export async function fetchFinalsFromWikipedia() {
   try {
     const url = 'https://no.wikipedia.org/wiki/Eurovision_Song_Contest_2026';
     const response = await fetch(url);
@@ -12,42 +10,45 @@ async function fetchFinalsFromWikipedia() {
     const finalsMatch = html.match(/id="Finalen"[\s\S]*?<table[^>]*>([\s\S]*?)<\/table>/);
 
     if (!finalsMatch) {
-      console.log('❌ Could not find finals table on Wikipedia');
-      console.log('Manually update songs via admin panel at: http://localhost:3001/admin.html');
-      console.log('Login as "Inge" to edit song information and image URLs');
-      return null;
+      throw new Error('Could not find finals table on Wikipedia');
     }
 
-    console.log('✓ Found finals table on Wikipedia');
-    console.log('Manual update required:');
-    console.log('1. Open http://localhost:3001/admin.html');
-    console.log('2. Login as "Inge"');
-    console.log('3. Edit each song with correct details from Wikipedia');
-    console.log('4. Add image URLs for each song');
+    const tableHtml = finalsMatch[1];
+    const rows = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || [];
 
-    return finalsMatch[1];
+    const songs = [];
+    let number = 1;
+
+    for (const row of rows) {
+      const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
+
+      if (cells.length >= 3) {
+        const extractText = (html) => {
+          return html.replace(/<[^>]*>/g, '').trim();
+        };
+
+        const country = extractText(cells[0]);
+        const artist = extractText(cells[1]);
+        const title = extractText(cells[2]);
+
+        if (country && artist && title) {
+          songs.push({
+            number: number++,
+            country,
+            artist,
+            title,
+            imageUrl: ''
+          });
+        }
+      }
+    }
+
+    if (songs.length === 0) {
+      throw new Error('No songs found in table');
+    }
+
+    return songs;
   } catch (error) {
-    console.error('Error fetching Wikipedia:', error.message);
-    return null;
+    throw new Error(`Wikipedia fetch error: ${error.message}`);
   }
 }
-
-async function main() {
-  console.log('🎵 Eurovision 2026 Final - Song Update\n');
-
-  const content = await fetchFinalsFromWikipedia();
-
-  if (!content) {
-    console.log('\n⚠️  Wikipedia parsing not fully automated yet.');
-    console.log('Use the admin panel to manually update song information:\n');
-    console.log('   npm start');
-    console.log('   Open http://localhost:3001/admin.html');
-    console.log('   Login as: Inge');
-    console.log('   Edit each song with correct details');
-    process.exit(0);
-  }
-
-  console.log('\n✓ Update complete!');
-}
-
-main();

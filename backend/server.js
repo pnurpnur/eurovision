@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import { initDb, getDb } from './db.js';
+import { fetchFinalsFromWikipedia } from './update-songs.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -253,7 +254,7 @@ app.get('/api/results', async (req, res) => {
   }
 });
 
-// POST /api/admin/lock-results - admin lock
+// POST /api/admin/lock-results - toggle lock results
 app.post('/api/admin/lock-results', async (req, res) => {
   const { name } = req.body;
 
@@ -262,11 +263,16 @@ app.post('/api/admin/lock-results', async (req, res) => {
   }
 
   try {
+    const appState = await dbGet(db, "SELECT value FROM appState WHERE key = 'resultsLocked'");
+    const currentlyLocked = appState?.value === 'true';
+    const newLocked = !currentlyLocked;
+
     await dbRun(db,
-      "UPDATE appState SET value = 'true' WHERE key = 'resultsLocked'"
+      "UPDATE appState SET value = ? WHERE key = 'resultsLocked'",
+      [newLocked ? 'true' : 'false']
     );
 
-    res.json({ success: true, locked: true });
+    res.json({ success: true, locked: newLocked });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -290,6 +296,81 @@ app.put('/api/admin/songs/:id', async (req, res) => {
     );
 
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/update-songs - fetch songs from Wikipedia and update database
+app.post('/api/admin/update-songs', async (req, res) => {
+  const { name } = req.body;
+
+  if (name !== 'Inge') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  try {
+    console.log('[ADMIN] Fetching songs from Wikipedia...');
+    const songs = await fetchFinalsFromWikipedia();
+
+    // Delete all existing songs
+    await dbRun(db, 'DELETE FROM songs');
+
+    // Insert new songs
+    let inserted = 0;
+    for (const song of songs) {
+      await dbRun(db,
+        'INSERT INTO songs (number, country, artist, title, imageUrl) VALUES (?, ?, ?, ?, ?)',
+        [song.number, song.country, song.artist, song.title, song.imageUrl || '']
+      );
+      inserted++;
+    }
+
+    console.log(`[ADMIN] Updated ${inserted} songs from Wikipedia`);
+    res.json({ success: true, inserted });
+  } catch (err) {
+    console.error('[ADMIN ERROR] Update songs failed:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/update-images - update images from uploaded data
+app.post('/api/admin/update-images', async (req, res) => {
+  const { name, imageUpdates } = req.body;
+
+  if (name !== 'Inge') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  try {
+    let updated = 0;
+    let notFound = 0;
+
+    for (const [country, imageUrl] of Object.entries(imageUpdates)) {
+      const result = await dbRun(db,
+        'UPDATE songs SET imageUrl = ? WHERE country = ?',
+        [imageUrl, country]
+      );
+
+      if (result.changes > 0) {
+        updated++;
+      } else {
+        notFound++;
+      }
+    }
+
+    res.json({ success: true, updated, notFound });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/images-file - get images.txt content
+app.get('/api/admin/images-file', (req, res) => {
+  try {
+    const filePath = join(__dirname, 'images.txt');
+    const content = require('fs').readFileSync(filePath, 'utf-8');
+    res.json({ content });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

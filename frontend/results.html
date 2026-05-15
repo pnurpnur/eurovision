@@ -45,21 +45,15 @@
 
     function renderAdminPanel() {
       const panel = document.getElementById('adminPanel');
-      if (session.name === 'Inge') {
-        panel.innerHTML = `
-          <div class="admin-panel" style="margin-bottom: 16px;">
-            <button onclick="lockResults()">🔒 Lukk avstemningen</button>
-          </div>
-        `;
-      }
+      panel.innerHTML = '';
     }
 
     function renderResults(results, resultsLocked) {
       const list = document.getElementById('resultsList');
       list.innerHTML = '';
 
-      if (resultsLocked) {
-        list.innerHTML = '<p style="color: white; text-align: center; padding: 40px;">Resultatene er lukket.</p>';
+      if (!resultsLocked) {
+        list.innerHTML = '<p style="color: white; text-align: center; padding: 40px;">Avstemningen er åpen</p>';
         return;
       }
 
@@ -100,20 +94,21 @@
     function toggleVoters(el) {
       const voters = el.nextElementSibling;
       const isOpen = voters.style.display !== 'none';
+
+      if (!isOpen) {
+        // Close all other open voter sections
+        document.querySelectorAll('.result-main.open').forEach(openEl => {
+          if (openEl !== el) {
+            openEl.classList.remove('open');
+            openEl.nextElementSibling.style.display = 'none';
+          }
+        });
+      }
+
       voters.style.display = isOpen ? 'none' : 'block';
       el.classList.toggle('open', !isOpen);
     }
 
-    async function lockResults() {
-      if (!confirm('Lukke avstemningen?')) return;
-      try {
-        await apiCall('/admin/lock-results', 'POST', { name: session.name });
-        showMessage('Avstemningen er lukket!', 'success');
-        setTimeout(() => loadResults(), 1000);
-      } catch (error) {
-        showMessage(`Feil: ${error.message}`, 'error');
-      }
-    }
 
     function logout() {
       clearSession();

@@ -33,6 +33,8 @@
     const session = getSession();
     let songs = [];
     let ratings = {};
+    let resultsLocked = false;
+    let savedRanking = null;
 
     async function loadData() {
       try {
@@ -46,7 +48,17 @@
           };
         });
 
+        const myRanking = await apiCall(`/my-ranking?sessionId=${session.sessionId}`);
+        savedRanking = myRanking;
+
+        const results = await apiCall('/results');
+        resultsLocked = results.resultsLocked;
+
         renderRanking();
+
+        if (resultsLocked) {
+          showMessage('Avstemningen er lukket', 'info');
+        }
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }
@@ -56,12 +68,26 @@
       const list = document.getElementById('rankingList');
       list.innerHTML = '';
 
-      // Sort by rating (highest first), unrated as neutral (5/10)
-      const sorted = songs.sort((a, b) => {
-        const scoreA = ratings[a.id]?.score ?? 5;
-        const scoreB = ratings[b.id]?.score ?? 5;
-        return scoreB - scoreA;
-      });
+      // Use saved ranking if available, otherwise sort by rating
+      let sorted = songs;
+      if (savedRanking && savedRanking.length > 0) {
+        const rankingMap = {};
+        savedRanking.forEach((id, idx) => {
+          rankingMap[id] = idx;
+        });
+        sorted = songs.sort((a, b) => {
+          const rankA = rankingMap[a.id] ?? songs.length;
+          const rankB = rankingMap[b.id] ?? songs.length;
+          return rankA - rankB;
+        });
+      } else {
+        // Fall back to sorting by rating if no saved ranking
+        sorted = songs.sort((a, b) => {
+          const scoreA = ratings[a.id]?.score ?? 5;
+          const scoreB = ratings[b.id]?.score ?? 5;
+          return scoreB - scoreA;
+        });
+      }
 
       sorted.forEach((song, idx) => {
         const rating = ratings[song.id];
@@ -86,16 +112,42 @@
         list.appendChild(item);
       });
 
-      setupDragDrop('.my-points-list', '.my-points-item');
-
-      // Auto-save after drag-and-drop
-      document.getElementById('rankingList').addEventListener('dragend', saveDragOrder);
+      if (!resultsLocked) {
+        setupDragDrop('.my-points-list', '.my-points-item');
+        // Auto-save after drag-and-drop
+        document.getElementById('rankingList').addEventListener('dragend', saveDragOrder);
+      }
     }
 
     async function saveDragOrder() {
+      if (resultsLocked) {
+        showMessage('Avstemningen er lukket, kan ikke lagre endringer', 'error');
+        return;
+      }
+
       const list = document.getElementById('rankingList');
-      const rankedIds = Array.from(list.querySelectorAll('.my-points-item'))
-        .map(el => parseInt(el.dataset.songId));
+      const items = Array.from(list.querySelectorAll('.my-points-item'));
+
+      // Update points display and top-10 class based on new order
+      items.forEach((item, idx) => {
+        const points = idx < 10 ? POINTS_ARRAY[idx] : 0;
+        let pointsEl = item.querySelector('.points-display');
+
+        if (points > 0) {
+          if (!pointsEl) {
+            pointsEl = document.createElement('div');
+            pointsEl.className = 'points-display';
+            item.appendChild(pointsEl);
+          }
+          pointsEl.textContent = `${points}p`;
+        } else if (pointsEl) {
+          pointsEl.remove();
+        }
+
+        item.classList.toggle('top-10', idx < 10);
+      });
+
+      const rankedIds = items.map(el => parseInt(el.dataset.songId));
 
       try {
         await apiCall('/rankings', 'POST', {

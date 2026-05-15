@@ -29,11 +29,6 @@
       <div class="song-selector">
         <div class="selector-scroll" id="selectorScroll"></div>
       </div>
-
-      <!-- Song counter only -->
-      <div class="song-nav">
-        <span id="songCounter" class="song-counter">1 / 25</span>
-      </div>
     </div>
   </div>
 
@@ -155,7 +150,6 @@
         </div>
       `;
 
-      updateCounter();
       attachEventListeners(song);
     }
 
@@ -170,10 +164,6 @@
         btn.onclick = () => goToSong(idx);
         selector.appendChild(btn);
       });
-    }
-
-    function updateCounter() {
-      document.getElementById('songCounter').textContent = `${currentIndex + 1} / ${songs.length}`;
     }
 
     function goToSong(index) {

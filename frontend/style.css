@@ -614,7 +614,6 @@ nav button.active {
 }
 
 .content p {
-  color: #666;
   line-height: 1.6;
   margin-bottom: 20px;
 }
@@ -667,13 +666,11 @@ nav button.active {
 
 .song-meta h3 {
   font-size: 18px;
-  color: var(--dark);
   margin-bottom: 5px;
   font-weight: 600;
 }
 
 .song-meta p {
-  color: #666;
   margin-bottom: 4px;
   font-size: 14px;
 }
@@ -1020,7 +1017,6 @@ textarea {
 
   .admin-panel button {
     width: 100%;
-    margin-top: 10px;
   }
 }
 

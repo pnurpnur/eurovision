@@ -1,25 +1,25 @@
-Danmark	
-Tyskland
-Israel
-Belgia
-Albania
-Hellas
-Ukraina
-Australia
-Serbia
-Malta
-Tsjekkia
-Bulgaria
-Kroatia
-Storbritannia
-Frankrike
-Moldova	
-Finland	
-Polen
-Litauen
-Sverige
-Kypros
-Italia
-Norge
-Romania
-Østerrike
+Danmark	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/denmark_8rbh8gajpg/Denmark_8Rbh8gA-fill_size%3D800x1200-focal_point%3D1283x368-focal_size%3D207x218-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1283x368-focal_size%3D207x218-format%3Dwebp.webp
+Tyskland	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/germanyjpg/Germany-fill_size%3D800x1200-focal_point%3D1276x1003-focal_size%3D488x428-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1276x1003-focal_size%3D488x428-format%3Dwebp.webp
+Israel	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/israeljpg/Israel-fill_size%3D800x1200-focal_point%3D1204x310-focal_size%3D259x267-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1204x310-focal_size%3D259x267-format%3Dwebp.webp
+Belgia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260507_corinne-cumming_ebu00040-croppedpng/260507_Corinne%20Cumming_EBU00040%20cropped-fill_size%3D800x1200-focal_point%3D2481x936-focal_size%3D669x803-format%3Dwebp.webp
+Albania	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/test-alispng/test%20alis-fill_size%3D800x1200-focal_point%3D2429x1123-focal_size%3D778x842-format%3Dwebp.webp
+Hellas	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/greecejpg/Greece-fill_size%3D800x1200-focal_point%3D1241x405-focal_size%3D310x253-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1241x405-focal_size%3D310x253-format%3Dwebp.webp
+Ukraina	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260509_corinne-cumming_ebu00070jpg/260509_Corinne%20Cumming_EBU00070-fill_size%3D800x1200-focal_point%3D2527x2748-focal_size%3D1516x1741-format%3Dwebp.webp
+Australia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260509_corinne-cumming_ebu00077jpg/260509_Corinne%20Cumming_EBU00077-fill_size%3D800x1200-focal_point%3D2589x2108-focal_size%3D1106x1618-format%3Dwebp.webp
+Serbia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260507_corinne-cumming_ebu00062jpg/260507_Corinne%20Cumming_EBU00062-fill_size%3D800x1200-focal_point%3D2507x3355-focal_size%3D901x942-format%3Dwebp.webp
+Malta	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260509_corinne-cumming_ebu00036jpg/260509_Corinne%20Cumming_EBU00036-fill_size%3D800x1200-focal_point%3D2614x1017-focal_size%3D437x519-format%3Dwebp.webp
+Tsjekkia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/daniel-zizka_finals__img7135_dcg99uzjpg/Daniel%20Zizka_finals__IMG7135_dcG99Uz-fill_size%3D800x1200-focal_point%3D765x673-focal_size%3D418x375-format%3Dwebp-fill_size%3D800x1200-focal_point%3D765x673-focal_size%3D418x375-format%3Dwebp.webp
+Bulgaria	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260508_corinne-cumming_ebu00085-croppedpng/260508_Corinne%20Cumming_EBU00085%20cropped-fill_size%3D800x1200-format%3Dwebp.webp
+Kroatia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260506_corinne-cumming_ebu00170jpg/260506_Corinne%20Cumming_EBU00170-fill_size%3D800x1200-focal_point%3D2732x2138-focal_size%3D942x1208-format%3Dwebp.webp
+Storbritannia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260509_corinne-cumming_ebu00021jpg/260509_Corinne%20Cumming_EBU00021-fill_size%3D800x1200-focal_point%3D1513x2026-focal_size%3D610x683-format%3Dwebp.webp
+Frankrike	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/monroe26jpg/Monroe26-fill_size%3D800x1200-focal_point%3D1030x757-focal_size%3D402x426-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1030x757-focal_size%3D402x426-format%3Dwebp.webp
+Moldova	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260506_corinne-cumming_ebu00028jpg/260506_Corinne%20Cumming_EBU00028-fill_size%3D800x1200-focal_point%3D2223x683-focal_size%3D587x595-format%3Dwebp.webp
+Finland	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/linda_lampenius_x_pete_parkkonen_music_video_still_credit_nelli_kentta_lcyg46bjpg/Linda_Lampenius_x_Pete_Parkkonen_music_video_still_Credit_Nelli_kentta_LCYG46b-fill_size%3D800x1200-focal_point%3D2546x913-focal_size%3D968x704-format%3Dwebp-fill_size%3D800x1200-focal_point%3D2546x913-focal_size%3D968x704-format%3Dwebp.webp
+Polen	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260507_corinne-cumming_ebu00044jpg/260507_Corinne%20Cumming_EBU00044-fill_size%3D800x1200-focal_point%3D3089x2391-focal_size%3D1320x1254-format%3Dwebp.webp
+Litauen	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/lithuaniajpg/Lithuania-fill_size%3D800x1200-focal_point%3D1306x690-focal_size%3D570x459-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1306x690-focal_size%3D570x459-format%3Dwebp.webp
+Sverige	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260506_corinne-cumming_ebu00130jpg/260506_Corinne%20Cumming_EBU00130-fill_size%3D800x1200-focal_point%3D2631x2507-focal_size%3D1247x1445-format%3Dwebp.webp
+Kypros	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/cyprus_qo5gwlojpg/Cyprus_qO5gWlo-fill_size%3D800x1200-focal_point%3D880x1054-focal_size%3D629x507-format%3Dwebp-fill_size%3D800x1200-focal_point%3D880x1054-focal_size%3D629x507-format%3Dwebp.webp
+Italia	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/italyjpg/Italy-fill_size%3D800x1200-focal_point%3D1410x1119-focal_size%3D732x755-format%3Dwebp-fill_size%3D800x1200-focal_point%3D1410x1119-focal_size%3D732x755-format%3Dwebp.webp
+Norge	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260509_corinne-cumming_ebu00100jpg/260509_Corinne%20Cumming_EBU00100-fill_size%3D800x1200-focal_point%3D2681x2529-focal_size%3D1249x1475-format%3Dwebp.webp
+Romania	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260508_corinne-cumming_ebu00236jpg/260508_Corinne%20Cumming_EBU00236-fill_size%3D800x1200-focal_point%3D2629x1604-focal_size%3D687x726-format%3Dwebp.webp
+Østerrike	https://storage.googleapis.com/eurovision-com.appspot.com/renditions/public/cms/260509_corinne-cumming_ebu00018_croppedpng/260509_Corinne%20Cumming_EBU00018_cropped-fill_size%3D800x1200-format%3Dwebp.webp

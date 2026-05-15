@@ -359,7 +359,7 @@ nav button.active {
   height: 220px;
   border-radius: 12px;
   object-fit: cover;
-  object-position: top;
+  object-position: center -30px;
   background: linear-gradient(135deg, rgba(0, 168, 232, 0.2), rgba(255, 0, 107, 0.2));
 }
 
@@ -648,6 +648,7 @@ nav button.active {
   height: 140px;
   border-radius: 12px;
   object-fit: cover;
+  object-position: center -30px;
   flex-shrink: 0;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   border: 3px solid var(--accent);

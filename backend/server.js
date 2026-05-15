@@ -5,6 +5,7 @@ import { initDb, getDb } from './db.js';
 import { fetchFinalsFromWikipedia } from './update-songs.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import fs from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -373,7 +374,7 @@ app.post('/api/admin/update-images', async (req, res) => {
 app.get('/api/admin/images-file', (req, res) => {
   try {
     const filePath = join(__dirname, 'images.txt');
-    const content = require('fs').readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, 'utf-8');
     res.json({ content });
   } catch (err) {
     res.status(500).json({ error: err.message });

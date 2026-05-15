@@ -22,7 +22,11 @@ export async function fetchFinalsFromWikipedia() {
 
       if (cells.length >= 3) {
         const extractText = (html) => {
-          return html.replace(/<[^>]*>/g, '').trim();
+          return html
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .trim();
         };
 
         const country = extractText(cells[0]);

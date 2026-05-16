@@ -152,9 +152,10 @@ function setupDragDrop(listSelector, itemSelector) {
     placeholder.style.cssText = `height: ${item.offsetHeight}px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); margin: 0;`;
     item.after(placeholder);
     item.classList.add('dragging');
+    const itemWidth = item.offsetWidth;
     item.style.position = 'fixed';
     item.style.zIndex = '9999';
-    item.style.width = item.parentElement.offsetWidth - 28 + 'px';
+    item.style.width = itemWidth + 'px';
     item.style.pointerEvents = 'none';
   }
 

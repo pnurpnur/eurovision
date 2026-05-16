@@ -200,15 +200,18 @@
       // Update points display and top-10 class based on new order
       items.forEach((item, idx) => {
         const points = idx < 10 ? POINTS_ARRAY[idx] : 0;
-        let pointsEl = item.querySelector('.points-display');
+        const mainDiv = item.querySelector('div');
+        let pointsEl = mainDiv ? mainDiv.querySelector('.points-display') : null;
 
         if (points > 0) {
-          if (!pointsEl) {
+          if (!pointsEl && mainDiv) {
             pointsEl = document.createElement('div');
             pointsEl.className = 'points-display';
-            item.appendChild(pointsEl);
+            mainDiv.appendChild(pointsEl);
           }
-          pointsEl.textContent = `${points}p`;
+          if (pointsEl) {
+            pointsEl.textContent = `${points}p`;
+          }
         } else if (pointsEl) {
           pointsEl.remove();
         }

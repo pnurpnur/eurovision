@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eurovision-v1';
+const CACHE_NAME = 'eurovision-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -37,6 +37,13 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Never cache API calls — always fetch fresh data from network
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
     return;
   }
 

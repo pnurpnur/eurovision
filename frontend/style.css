@@ -60,12 +60,12 @@ body > * {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 100px 20px 0 20px;
+  padding: 90px 20px 0 20px;
 }
 
 /* Main Header - Fixed */
 .main-header {
-  padding: 10px 30px;
+  padding: 5px 30px;
   margin-bottom: 0;
   background: rgba(10, 14, 39, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -992,7 +992,7 @@ textarea {
   }
 
   .content {
-    padding: 20px;
+    padding: 0 20px;
   }
 
   .song-header:not(.my-points-item .song-header) {

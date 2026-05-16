@@ -36,8 +36,9 @@
     async function loadResults() {
       try {
         const data = await apiCall('/results');
+        const isAdmin = session.name === 'Inge';
         renderAdminPanel();
-        renderResults(data.results, data.resultsLocked);
+        renderResults(data.results, data.resultsLocked, isAdmin);
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }
@@ -48,13 +49,18 @@
       panel.innerHTML = '';
     }
 
-    function renderResults(results, resultsLocked) {
+    function renderResults(results, resultsLocked, isAdmin = false) {
       const list = document.getElementById('resultsList');
       list.innerHTML = '';
 
-      if (!resultsLocked) {
+      if (!resultsLocked && !isAdmin) {
         list.innerHTML = '<p style="color: white; text-align: center; padding: 40px;">Avstemningen er åpen</p>';
         return;
+      }
+
+      if (!resultsLocked && isAdmin) {
+        const panel = document.getElementById('adminPanel');
+        panel.innerHTML = '<div style="background: rgba(255, 193, 7, 0.15); border: 2px solid #FFC107; border-radius: 12px; padding: 15px; margin-bottom: 20px; color: #FFC107; font-weight: bold; text-align: center;">⚠️ MIDLERTIDIG RESULTAT - Avstemningen er ennå åpen</div>';
       }
 
       if (!results || results.length === 0) {

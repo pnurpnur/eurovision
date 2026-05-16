@@ -168,24 +168,35 @@
     }
 
     function goToSong(index) {
-      currentIndex = index;
-      renderCurrentSong();
-      renderSongSelector();
-      document.querySelector('.selector-scroll').children[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      goToSongWithAnimation(index);
     }
 
     function nextSong() {
-      currentIndex = (currentIndex + 1) % songs.length;
-      renderCurrentSong();
-      renderSongSelector();
-      scrollToActiveButton();
+      const card = document.getElementById('songCard');
+      card.classList.add('swipe-out-left');
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % songs.length;
+        card.classList.remove('swipe-out-left');
+        card.classList.add('swipe-in-from-right');
+        renderCurrentSong();
+        renderSongSelector();
+        scrollToActiveButton();
+        setTimeout(() => card.classList.remove('swipe-in-from-right'), 400);
+      }, 400);
     }
 
     function previousSong() {
-      currentIndex = (currentIndex - 1 + songs.length) % songs.length;
-      renderCurrentSong();
-      renderSongSelector();
-      scrollToActiveButton();
+      const card = document.getElementById('songCard');
+      card.classList.add('swipe-out-right');
+      setTimeout(() => {
+        currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+        card.classList.remove('swipe-out-right');
+        card.classList.add('swipe-in-from-left');
+        renderCurrentSong();
+        renderSongSelector();
+        scrollToActiveButton();
+        setTimeout(() => card.classList.remove('swipe-in-from-left'), 400);
+      }, 400);
     }
 
     function scrollToActiveButton() {
@@ -301,6 +312,29 @@
           previousSong(); // Swiped right
         }
       }
+    }
+
+    function goToSongWithAnimation(index) {
+      if (index === currentIndex) return;
+
+      const direction = index > currentIndex ? 'left' : 'right';
+      const card = document.getElementById('songCard');
+
+      if (direction === 'left') {
+        card.classList.add('swipe-out-left');
+      } else {
+        card.classList.add('swipe-out-right');
+      }
+
+      setTimeout(() => {
+        currentIndex = index;
+        card.classList.remove('swipe-out-left', 'swipe-out-right');
+        card.classList.add(direction === 'left' ? 'swipe-in-from-right' : 'swipe-in-from-left');
+        renderCurrentSong();
+        renderSongSelector();
+        document.querySelector('.selector-scroll').children[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        setTimeout(() => card.classList.remove('swipe-in-from-right', 'swipe-in-from-left'), 400);
+      }, 400);
     }
 
     function logout() {

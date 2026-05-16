@@ -48,7 +48,15 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || `API error: ${response.status}`);
+    const errorMsg = error.error || `API error: ${response.status}`;
+
+    if (errorMsg.includes('Invalid session')) {
+      clearSession();
+      window.location.href = 'index.html';
+      return;
+    }
+
+    throw new Error(errorMsg);
   }
 
   return response.json();

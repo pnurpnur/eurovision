@@ -1265,12 +1265,31 @@ textarea {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
+  padding-right: 30px;
+  position: relative;
+}
+
+.my-points-list::after {
+  content: '⬍';
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(-50%); }
+  50% { transform: translateY(-60%); }
 }
 
 .my-points-item {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);

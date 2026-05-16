@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eurovision-v2';
+const CACHE_NAME = 'eurovision-v3';
 const urlsToCache = [
   '/',
   '/index.html',

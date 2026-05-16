@@ -48,6 +48,15 @@
       renderRanking();
     }
 
+    function formatScoreForDisplay(normalizedScore, scoreMethod) {
+      const score = convertScore(normalizedScore, 'normalized', scoreMethod);
+      if (scoreMethod === 'scale') {
+        const scaleValues = { '-2': '−−', '-1': '−', '0': '0', '1': '+', '2': '++' };
+        return scaleValues[score] || score;
+      }
+      return score;
+    }
+
     async function loadData() {
       try {
         songs = await apiCall('/songs');
@@ -56,6 +65,7 @@
         myRatings.forEach(r => {
           ratings[r.songId] = {
             score: r.score,
+            scoreMethod: r.scoreMethod,
             notes: r.notes || ''
           };
         });
@@ -126,6 +136,7 @@
       sorted.forEach((song, idx) => {
         const rating = ratings[song.id];
         const score = rating?.score ?? 5;
+        const currentScoreMethod = getStoredScoreMethod();
         const notes = rating?.notes ?? '';
         const points = (missingScores.length === 0 && idx < 10) ? POINTS_ARRAY[idx] : 0;
 
@@ -136,10 +147,13 @@
 
         const notesHtml = notes ? `<div class="notes-bubble">${notes}</div>` : '';
         const pointsHtml = points > 0 ? `<div class="points-display">${points}p</div>` : '';
+        const scoreDisplay = formatScoreForDisplay(score, currentScoreMethod);
+        const scoreHtml = `<div class="score-display" style="color: #FF006B; font-weight: bold; font-size: 16px;">${scoreDisplay}</div>`;
 
         item.innerHTML = `
           <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <span class="song-country">${song.country}</span>
+            ${scoreHtml}
             ${pointsHtml}
           </div>
           ${showNotes ? notesHtml : ''}
@@ -199,6 +213,11 @@
       clearSession();
       window.location.href = 'index.html';
     }
+
+    // Reload page when score method changes
+    window.addEventListener('scoreMethodChanged', () => {
+      window.location.reload();
+    });
 
     loadData();
   </script>

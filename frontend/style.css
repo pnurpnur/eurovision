@@ -556,17 +556,41 @@ nav button.active {
 }
 
 .selector-btn {
-  padding: 6px 10px;
+  padding: 6px 8px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.7);
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
-  white-space: nowrap;
+  font-size: 12px;
   transition: all 0.3s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selector-btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.selector-flag {
+  width: 32px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.selector-number {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1;
 }
 
 .selector-btn:hover {
@@ -577,6 +601,9 @@ nav button.active {
 .selector-btn.active {
   background: oklch(61.3% .2412 13.09);
   border-color: oklch(61.3% .2412 13.09);
+}
+
+.selector-btn.active .selector-number {
   color: white;
 }
 

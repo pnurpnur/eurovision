@@ -110,6 +110,64 @@ function formatScaleValue(val) {
 // Get points array (12, 10, 8, 7, 6, 5, 4, 3, 2, 1 for top 10)
 const POINTS_ARRAY = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
 
+// Country to alpha-2 code mapping (Norwegian names)
+const COUNTRY_CODES = {
+  'Danmark': 'dk',
+  'Tyskland': 'de',
+  'Israel': 'il',
+  'Belgia': 'be',
+  'Albania': 'al',
+  'Hellas': 'gr',
+  'Ukraina': 'ua',
+  'Australia': 'au',
+  'Serbia': 'rs',
+  'Malta': 'mt',
+  'Tsjekkia': 'cz',
+  'Bulgaria': 'bg',
+  'Kroatia': 'hr',
+  'Storbritannia': 'gb',
+  'Frankrike': 'fr',
+  'Moldova': 'md',
+  'Finland': 'fi',
+  'Polen': 'pl',
+  'Litauen': 'lt',
+  'Sverige': 'se',
+  'Kypros': 'cy',
+  'Italia': 'it',
+  'Norge': 'no',
+  'Romania': 'ro',
+  'Østerrike': 'at',
+  'Spania': 'es',
+  'Portugal': 'pt',
+  'Nederland': 'nl',
+  'Sveits': 'ch',
+  'Estland': 'ee',
+  'Latvia': 'lv',
+  'Island': 'is',
+  'Irland': 'ie',
+  'Luxembourg': 'lu',
+  'Montenegro': 'me',
+  'Nord-Makedonia': 'mk',
+  'San Marino': 'sm',
+  'Aserbajdsjan': 'az',
+  'Armenia': 'am',
+  'Georgia': 'ge',
+  'Slovenia': 'si',
+  'Slovakia': 'sk',
+  'Ungarn': 'hu',
+  'Hviterussland': 'by',
+  'Russland': 'ru',
+  'Tyrkia': 'tr',
+  'Andorra': 'ad',
+  'Monaco': 'mc'
+};
+
+// Get flag URL for a country
+function getFlagUrl(country) {
+  const code = COUNTRY_CODES[country];
+  return code ? `https://img.sportradar.com/ls/crest/big/${code}.png` : '';
+}
+
 // Show message
 function showMessage(message, type = 'info') {
   const msg = document.createElement('div');

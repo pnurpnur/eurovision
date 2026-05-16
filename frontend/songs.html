@@ -163,7 +163,12 @@
       songs.forEach((song, idx) => {
         const btn = document.createElement('button');
         btn.className = `selector-btn ${idx === currentIndex ? 'active' : ''}`;
-        btn.textContent = song.number;
+        btn.innerHTML = `
+          <div class="selector-btn-content">
+            <img src="${getFlagUrl(song.country)}" alt="${song.country}" class="selector-flag">
+            <span class="selector-number">${song.number}</span>
+          </div>
+        `;
         btn.onclick = () => goToSong(idx);
         selector.appendChild(btn);
       });

@@ -155,7 +155,6 @@
         card.className = 'song-card';
         card.innerHTML = `
           <div class="song-header">
-            <img id="img-${song.id}" src="${song.imageUrl}" alt="${song.country}" class="song-image" style="cursor: pointer;">
             <div class="song-meta" style="flex: 1;">
               <h3>#${song.number} - ${song.country}</h3>
               <p><strong>${song.artist}</strong></p>
@@ -165,6 +164,7 @@
           </div>
 
           <div id="edit-form-${song.id}" style="display: none; padding-top: 15px; border-top: 1px solid #ddd;">
+            <img id="img-${song.id}" src="${song.imageUrl}" alt="${song.country}" class="song-image" style="cursor: pointer; margin-bottom: 15px; max-width: 300px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
               <div class="form-group">
                 <label>Land:</label>

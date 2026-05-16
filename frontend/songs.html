@@ -46,6 +46,8 @@
     let currentScoreMethod = getStoredScoreMethod();
     let touchStartX = 0;
     let touchEndX = 0;
+    let lastSongWithListeners = null;
+    let animationInProgress = false;
 
     async function loadSongs() {
       try {
@@ -172,30 +174,50 @@
     }
 
     function nextSong() {
+      if (animationInProgress) return;
+      animationInProgress = true;
+
       const card = document.getElementById('songCard');
+      card.style.transform = '';
+      card.style.opacity = '';
       card.classList.add('swipe-out-left');
       setTimeout(() => {
         currentIndex = (currentIndex + 1) % songs.length;
         card.classList.remove('swipe-out-left');
-        card.classList.add('swipe-in-from-right');
-        renderCurrentSong();
-        renderSongSelector();
-        scrollToActiveButton();
-        setTimeout(() => card.classList.remove('swipe-in-from-right'), 400);
-      }, 400);
-    }
-
-    function previousSong() {
-      const card = document.getElementById('songCard');
-      card.classList.add('swipe-out-right');
-      setTimeout(() => {
-        currentIndex = (currentIndex - 1 + songs.length) % songs.length;
-        card.classList.remove('swipe-out-right');
         card.classList.add('swipe-in-from-left');
         renderCurrentSong();
         renderSongSelector();
         scrollToActiveButton();
-        setTimeout(() => card.classList.remove('swipe-in-from-left'), 400);
+        setTimeout(() => {
+          card.classList.remove('swipe-in-from-left');
+          card.style.transform = '';
+          card.style.opacity = '';
+          animationInProgress = false;
+        }, 400);
+      }, 400);
+    }
+
+    function previousSong() {
+      if (animationInProgress) return;
+      animationInProgress = true;
+
+      const card = document.getElementById('songCard');
+      card.style.transform = '';
+      card.style.opacity = '';
+      card.classList.add('swipe-out-right');
+      setTimeout(() => {
+        currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+        card.classList.remove('swipe-out-right');
+        card.classList.add('swipe-in-from-right');
+        renderCurrentSong();
+        renderSongSelector();
+        scrollToActiveButton();
+        setTimeout(() => {
+          card.classList.remove('swipe-in-from-right');
+          card.style.transform = '';
+          card.style.opacity = '';
+          animationInProgress = false;
+        }, 400);
       }, 400);
     }
 
@@ -208,6 +230,10 @@
 
     function attachEventListeners(song) {
       if (!song || !song.id) return;
+
+      // Only attach listeners once per song
+      if (lastSongWithListeners === song.id) return;
+      lastSongWithListeners = song.id;
 
       const notesInput = document.querySelector('.notes-input');
       if (!notesInput) return;
@@ -271,23 +297,79 @@
 
     function setupSwipeListeners() {
       const card = document.getElementById('songCard');
+      let isDragging = false;
+      let dragStartX = 0;
 
+      // Mouse drag
+      card.addEventListener('mousedown', (e) => {
+        if (isInteractiveElement(e.target)) return;
+        isDragging = true;
+        dragStartX = e.clientX;
+        card.style.cursor = 'grabbing';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const diff = e.clientX - dragStartX;
+        const percentage = Math.max(-100, Math.min(100, diff / 4));
+        const opacity = Math.max(0.3, 1 - Math.abs(percentage) / 100);
+        card.style.transform = `translateX(${percentage}px)`;
+        card.style.opacity = opacity;
+      });
+
+      document.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        const diff = e.clientX - dragStartX;
+        card.style.cursor = 'grab';
+
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) {
+            previousSong();
+          } else {
+            nextSong();
+          }
+        } else {
+          card.style.transform = '';
+          card.style.opacity = '';
+        }
+      });
+
+      // Touch drag
       card.addEventListener('touchstart', (e) => {
-        // Don't track swipe if touching slider or score buttons
         if (isInteractiveElement(e.target)) {
           touchStartX = null;
           return;
         }
         touchStartX = e.changedTouches[0].screenX;
+        isDragging = true;
+        dragStartX = touchStartX;
+      }, false);
+
+      document.addEventListener('touchmove', (e) => {
+        if (!isDragging || touchStartX === null) return;
+        const diff = e.changedTouches[0].screenX - dragStartX;
+        const percentage = Math.max(-100, Math.min(100, diff / 4));
+        const opacity = Math.max(0.3, 1 - Math.abs(percentage) / 100);
+        card.style.transform = `translateX(${percentage}px)`;
+        card.style.opacity = opacity;
       }, false);
 
       card.addEventListener('touchend', (e) => {
-        // Don't swipe if we didn't properly start
-        if (touchStartX === null) {
+        if (!isDragging || touchStartX === null) {
+          isDragging = false;
           return;
         }
+        isDragging = false;
         touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+        const diff = touchEndX - touchStartX;
+
+        if (Math.abs(diff) > 50) {
+          handleSwipe();
+        } else {
+          card.style.transform = '';
+          card.style.opacity = '';
+        }
       }, false);
     }
 
@@ -315,10 +397,13 @@
     }
 
     function goToSongWithAnimation(index) {
-      if (index === currentIndex) return;
+      if (index === currentIndex || animationInProgress) return;
 
+      animationInProgress = true;
       const direction = index > currentIndex ? 'left' : 'right';
       const card = document.getElementById('songCard');
+      card.style.transform = '';
+      card.style.opacity = '';
 
       if (direction === 'left') {
         card.classList.add('swipe-out-left');
@@ -329,11 +414,16 @@
       setTimeout(() => {
         currentIndex = index;
         card.classList.remove('swipe-out-left', 'swipe-out-right');
-        card.classList.add(direction === 'left' ? 'swipe-in-from-right' : 'swipe-in-from-left');
+        card.classList.add(direction === 'left' ? 'swipe-in-from-left' : 'swipe-in-from-right');
         renderCurrentSong();
         renderSongSelector();
         document.querySelector('.selector-scroll').children[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        setTimeout(() => card.classList.remove('swipe-in-from-right', 'swipe-in-from-left'), 400);
+        setTimeout(() => {
+          card.classList.remove('swipe-in-from-left', 'swipe-in-from-right');
+          card.style.transform = '';
+          card.style.opacity = '';
+          animationInProgress = false;
+        }, 400);
       }, 400);
     }
 

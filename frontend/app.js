@@ -235,6 +235,9 @@ function toggleMenu() {
 
     if (menu.classList.contains('active')) {
       positionMenu();
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
   }
 }
@@ -248,6 +251,7 @@ function closeMenu() {
     menu.classList.remove('active');
     backdrop.classList.remove('active');
     button.classList.remove('active');
+    document.body.style.overflow = '';
   }
 }
 

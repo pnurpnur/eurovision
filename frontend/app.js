@@ -110,7 +110,8 @@ function isLoggedIn() {
 async function apiCall(endpoint, method = 'GET', body = null) {
   const options = {
     method,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store'
   };
 
   if (body) options.body = JSON.stringify(body);

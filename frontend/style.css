@@ -60,12 +60,13 @@ body > * {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 90px 20px 0 20px;
+  padding: calc(85px + env(safe-area-inset-top)) 20px 0 20px;
 }
 
 /* Main Header - Fixed */
 .main-header {
   padding: 5px 30px;
+  padding-top: calc(5px + env(safe-area-inset-top));
   margin-bottom: 0;
   background: rgba(10, 14, 39, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -379,7 +380,7 @@ nav button.active {
 .song-details h2 {
   font-size: 28px;
   color: white;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .song-details .artist {

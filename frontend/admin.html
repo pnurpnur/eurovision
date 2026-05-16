@@ -35,6 +35,11 @@
         <div id="updateResult" style="margin-top: 10px; color: white;"></div>
       </div>
 
+      <div id="usersPanel" style="margin-bottom: 30px; display: none;">
+        <h3 style="color: white; margin-bottom: 15px;">Brukere</h3>
+        <div id="usersList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
       <div id="songsList"></div>
     </div>
   </div>
@@ -56,7 +61,44 @@
         songs = await apiCall('/songs');
         const data = await apiCall('/results');
         renderAdminPanel(data.resultsLocked);
+        renderUsers();
         renderSongs();
+      } catch (error) {
+        showMessage(`Feil: ${error.message}`, 'error');
+      }
+    }
+
+    async function renderUsers() {
+      try {
+        const users = await apiCall('/admin/users');
+        const panel = document.getElementById('usersPanel');
+        const list = document.getElementById('usersList');
+
+        if (users.length === 0) {
+          list.innerHTML = '<p style="color: rgba(255,255,255,0.6);">Ingen brukere</p>';
+          return;
+        }
+
+        list.innerHTML = users.map(user => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.08); border-radius: 8px;">
+            <span style="color: white;">${user.name}: <strong>${user.scoreCount} av 25</strong> poeng</span>
+            <button onclick="deleteUser(${user.id})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Slett</button>
+          </div>
+        `).join('');
+
+        panel.style.display = 'block';
+      } catch (error) {
+        console.error('Error loading users:', error.message);
+      }
+    }
+
+    async function deleteUser(userId) {
+      if (!confirm('Er du sikker på at du vil slette denne brukeren?')) return;
+
+      try {
+        await apiCall(`/admin/users/${userId}`, 'DELETE', { name: session.name });
+        showMessage('Bruker slettet!', 'success');
+        loadSongs();
       } catch (error) {
         showMessage(`Feil: ${error.message}`, 'error');
       }

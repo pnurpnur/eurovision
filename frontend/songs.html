@@ -78,11 +78,12 @@
         : null;
 
       if (currentScoreMethod === '1-10') {
-        const val = displayScore || '5';
+        const sliderValue = displayScore !== null ? displayScore : '1';
+        const displayVal = displayScore !== null ? displayScore : '';
         return `
           <div class="slider-wrapper">
-            <div class="slider-value-display">${val}</div>
-            <input type="range" min="1" max="10" class="score-input score-slider" value="${val}">
+            <div class="slider-value-display">${displayVal}</div>
+            <input type="range" min="1" max="10" class="score-input score-slider" value="${sliderValue}">
           </div>
         `;
       } else if (currentScoreMethod === 'dice') {

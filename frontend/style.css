@@ -500,7 +500,6 @@ nav button.active {
   color: rgba(255, 255, 255, 0.8) !important;
   border-radius: 8px !important;
   font-size: 14px !important;
-  font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.2s !important;
   display: flex !important;

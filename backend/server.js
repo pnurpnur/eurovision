@@ -381,6 +381,42 @@ app.get('/api/admin/images-file', (req, res) => {
   }
 });
 
+// GET /api/admin/users - get all users with score counts
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const users = await dbAll(db, 'SELECT id, name FROM users ORDER BY name');
+    const usersWithScores = await Promise.all(users.map(async (user) => {
+      const result = await dbGet(db, 'SELECT COUNT(*) as count FROM ratings WHERE userId = ?', [user.id]);
+      return { ...user, scoreCount: result?.count || 0 };
+    }));
+    res.json(usersWithScores);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/users/:id - delete a user and their data
+app.delete('/api/admin/users/:id', async (req, res) => {
+  const { name } = req.body;
+
+  if (name !== 'Inge') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const { id } = req.params;
+
+  try {
+    // Delete ratings, rankings, and user
+    await dbRun(db, 'DELETE FROM ratings WHERE userId = ?', [id]);
+    await dbRun(db, 'DELETE FROM finalRankings WHERE userId = ?', [id]);
+    await dbRun(db, 'DELETE FROM users WHERE id = ?', [id]);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Fallback for SPA routing
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, '../frontend/index.html'));

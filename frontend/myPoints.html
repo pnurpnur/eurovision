@@ -148,7 +148,7 @@
         list.appendChild(item);
       });
 
-      if (!resultsLocked) {
+      if (!resultsLocked && missingScores.length === 0) {
         setupDragDrop('.my-points-list', '.my-points-item');
         // Auto-save after drag-and-drop
         document.getElementById('rankingList').addEventListener('dragend', saveDragOrder);

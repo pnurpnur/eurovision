@@ -79,6 +79,25 @@
         // Check which songs are missing scores
         missingScores = songs.filter(s => !ratings[s.id]).map(s => s.country);
 
+        // Auto-save initial ranking when all scores exist and no ranking saved yet
+        if (missingScores.length === 0 && (!savedRanking || savedRanking.length === 0) && !resultsLocked) {
+          const sortedByScore = songs.slice().sort((a, b) => {
+            const scoreA = ratings[a.id]?.score ?? 5;
+            const scoreB = ratings[b.id]?.score ?? 5;
+            return scoreB - scoreA;
+          });
+          const rankedIds = sortedByScore.map(s => s.id);
+          try {
+            await apiCall('/rankings', 'POST', {
+              sessionId: session.sessionId,
+              rankedSongIds: rankedIds
+            });
+            savedRanking = rankedIds;
+          } catch (error) {
+            console.error('Feil ved auto-lagring av rangering:', error);
+          }
+        }
+
         renderRanking();
 
         if (resultsLocked) {
@@ -99,7 +118,7 @@
       // Show warning if scores are missing
       if (missingScores.length > 0) {
         const warningDiv = document.createElement('div');
-        warningDiv.style.cssText = 'background: rgba(255, 107, 0, 0.15); border: 2px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 20px; color: white;';
+        warningDiv.style.cssText = 'background: rgba(255, 107, 0, 0.15); border: 2px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 5px; color: white;';
         warningDiv.innerHTML = `
           <div style="font-weight: bold; margin-bottom: 10px;">⚠️ Du må gi score til alle sangene før du kan rangere</div>
           <div style="font-size: 14px; line-height: 1.6;">Mangler score: ${missingScores.join(', ')}</div>

@@ -1,3 +1,75 @@
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {
+    // Silent fail - PWA not critical
+  });
+}
+
+// Handle install prompt (Android)
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallPrompt();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  hideInstallPrompt();
+});
+
+function showInstallPrompt() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  if (isIOS) {
+    // iOS: Show manual install instructions
+    const msg = document.createElement('div');
+    msg.className = 'message info';
+    msg.innerHTML = `
+      <div style="text-align: left; line-height: 1.6;">
+        <strong>Installer appen</strong><br>
+        1. Trykk på del-knappen<br>
+        2. Velg "Legg til på Hjem-skjerm"
+      </div>
+    `;
+    document.body.insertBefore(msg, document.body.firstChild);
+    setTimeout(() => msg.remove(), 8000);
+  } else if (deferredPrompt) {
+    // Android: Show native install prompt
+    const msg = document.createElement('div');
+    msg.className = 'message info install-prompt-container';
+    msg.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Installer Eurovision app på enheten din</span>
+        <div style="gap: 10px; display: flex;">
+          <button class="install-btn install-yes" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Installer</button>
+          <button class="install-btn install-no" style="padding: 8px 16px; background: transparent; color: white; border: 1px solid white; border-radius: 6px; cursor: pointer;">Avvis</button>
+        </div>
+      </div>
+    `;
+    document.body.insertBefore(msg, document.body.firstChild);
+
+    msg.querySelector('.install-yes').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        msg.remove();
+      }
+    });
+
+    msg.querySelector('.install-no').addEventListener('click', () => {
+      deferredPrompt = null;
+      msg.remove();
+    });
+  }
+}
+
+function hideInstallPrompt() {
+  const prompt = document.querySelector('.install-prompt-container');
+  if (prompt) prompt.remove();
+}
+
 // Configuration - auto-detect API URL
 const API_URL = (() => {
   // If on Railway or deployed: use same origin

@@ -241,6 +241,11 @@ app.get('/api/results', async (req, res) => {
     const songs = await dbAll(db, 'SELECT id, number, country, title, artist FROM songs');
     const songMap = Object.fromEntries(songs.map(s => [s.id, s]));
 
+    // Include all songs, even those with 0 points
+    songs.forEach(song => {
+      if (!results[song.id]) results[song.id] = { points: 0, voters: [] };
+    });
+
     const output = Object.entries(results)
       .map(([songId, data]) => ({
         ...songMap[songId],

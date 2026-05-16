@@ -68,11 +68,17 @@
         return;
       }
 
+      let place = 1;
       results.forEach((result, idx) => {
+        if (idx > 0 && result.points < results[idx - 1].points) {
+          place = idx + 1;
+        }
+
         const row = document.createElement('div');
         row.className = 'result-row';
+        if (result.points === 0) row.classList.add('result-row--zero');
+
         const voters = result.voters || [];
-        console.log(`${result.country} voters:`, voters);
 
         const votersHtml = voters.length > 0
           ? voters.map(v => `
@@ -80,11 +86,11 @@
                 <span class="voter-name">${v.name}</span>
                 <span class="voter-points">${v.points}p</span>
               </div>`).join('')
-          : `<div class="voter-row"><span class="voter-name" style="opacity:0.5">Ingen har stemt ennå</span></div>`;
+          : `<div class="voter-row"><span class="voter-name" style="opacity:0.5">Ingen stemmer</span></div>`;
 
         row.innerHTML = `
           <div class="result-main" onclick="toggleVoters(this)">
-            <span class="result-place">${idx + 1}</span>
+            <span class="result-place">${place}</span>
             <span class="result-country">${result.country}</span>
             <span class="result-points">${result.points}p</span>
           </div>

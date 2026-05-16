@@ -1326,6 +1326,14 @@ textarea {
   color: oklch(61.3% .2412 13.09);
 }
 
+.result-row--zero .result-main {
+  opacity: 0.5;
+}
+
+.result-row--zero .result-points {
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .result-voters {
   background: rgba(0, 0, 0, 0.2);
   padding: 6px 16px 10px;
